@@ -1,5 +1,13 @@
 import express from 'express';
-import { getPatients, getPatientProfile, updatePatientProfile } from '../controllers/patientController.js';
+import { 
+  getPatients, 
+  getPatientProfile, 
+  updatePatientProfile,
+  getPatientAllergies,
+  addPatientAllergy,
+  getPatientConditions,
+  addPatientCondition
+} from '../controllers/patientController.js';
 import { getPatientMedicalRecords, createMedicalRecord } from '../controllers/medicalRecordController.js';
 import { authenticate, authorizeRoles, authorizeDoctorPatientAccess } from '../middleware/authMiddleware.js';
 
@@ -18,5 +26,15 @@ router.route('/:patientId')
 router.route('/:patientId/medical-records')
   .get(authorizeDoctorPatientAccess, getPatientMedicalRecords)
   .post(authorizeRoles('doctor'), authorizeDoctorPatientAccess, createMedicalRecord);
+
+// Nested routes for allergies
+router.route('/:patientId/allergies')
+  .get(authorizeDoctorPatientAccess, getPatientAllergies)
+  .post(authorizeRoles('doctor'), authorizeDoctorPatientAccess, addPatientAllergy);
+
+// Nested routes for conditions
+router.route('/:patientId/conditions')
+  .get(authorizeDoctorPatientAccess, getPatientConditions)
+  .post(authorizeRoles('doctor'), authorizeDoctorPatientAccess, addPatientCondition);
 
 export default router;

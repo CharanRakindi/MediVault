@@ -17,6 +17,9 @@ import appointmentRoutes from './routes/appointmentRoutes.js';
 import medicalRecordRoutes from './routes/medicalRecordRoutes.js';
 import dashboardRoutes from './routes/dashboardRoutes.js';
 import uploadRoutes from './routes/uploadRoutes.js';
+import prescriptionRoutes from './routes/prescriptionRoutes.js';
+import labReportRoutes from './routes/labReportRoutes.js';
+import auditLogRoutes from './routes/auditLogRoutes.js';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -68,6 +71,9 @@ app.use('/api/v1/appointments', appointmentRoutes);
 app.use('/api/v1/medical-records', medicalRecordRoutes);
 app.use('/api/v1/dashboard', dashboardRoutes);
 app.use('/api/v1/upload', uploadRoutes);
+app.use('/api/v1/prescriptions', prescriptionRoutes);
+app.use('/api/v1/lab-reports', labReportRoutes);
+app.use('/api/v1/admin/audit-logs', auditLogRoutes);
 
 // Error Handling
 app.use(notFound);

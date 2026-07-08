@@ -5,6 +5,11 @@ import PatientProfile from '../models/PatientProfile.js';
 import DoctorProfile from '../models/DoctorProfile.js';
 import Department from '../models/Department.js';
 import Appointment from '../models/Appointment.js';
+import Prescription from '../models/Prescription.js';
+import LabReport from '../models/LabReport.js';
+import Allergy from '../models/Allergy.js';
+import MedicalCondition from '../models/MedicalCondition.js';
+import AuditLog from '../models/AuditLog.js';
 import { connectDB } from '../config/db.js';
 
 // Load env vars
@@ -14,35 +19,62 @@ const seedData = async () => {
   try {
     await connectDB();
 
+    console.log('Cleaning existing data...');
     // Clear existing data
     await User.deleteMany();
     await PatientProfile.deleteMany();
     await DoctorProfile.deleteMany();
     await Department.deleteMany();
     await Appointment.deleteMany();
+    await Prescription.deleteMany();
+    await LabReport.deleteMany();
+    await Allergy.deleteMany();
+    await MedicalCondition.deleteMany();
+    await AuditLog.deleteMany();
 
-    // 1. Create Admin (pre-save hook hashes the password automatically)
+    console.log('Seeding core users...');
+    // 1. Create Admins, Receptionists, Lab Techs
     const adminUser = await User.create({
       name: 'System Admin',
       email: 'admin@medivault.com',
       password: 'password123',
       role: 'admin',
+      gender: 'other',
+    });
+
+    const receptionistUser = await User.create({
+      name: 'Emily Rose',
+      email: 'receptionist@medivault.com',
+      password: 'password123',
+      role: 'receptionist',
+      gender: 'female',
+      phone: '555-9876'
+    });
+
+    const labtechUser = await User.create({
+      name: 'Alex Vance',
+      email: 'labtech@medivault.com',
+      password: 'password123',
+      role: 'lab_technician',
+      gender: 'male',
+      phone: '555-4321'
     });
 
     // 2. Create Departments
     const cardiology = await Department.create({ name: 'Cardiology', description: 'Heart and cardiovascular care' });
     const neurology = await Department.create({ name: 'Neurology', description: 'Brain and nervous system care' });
+    const pediatrics = await Department.create({ name: 'Pediatrics', description: 'Children care' });
 
     // 3. Create Doctors
     const doctorUsers = await User.create([
-      { name: 'Dr. Sarah Jenkins', email: 'sarah@medivault.com', password: 'password123', role: 'doctor', gender: 'female' },
-      { name: 'Dr. Michael Chen', email: 'michael@medivault.com', password: 'password123', role: 'doctor', gender: 'male' },
+      { name: 'Dr. Sarah Jenkins', email: 'sarah@medivault.com', password: 'password123', role: 'doctor', gender: 'female', phone: '555-1111' },
+      { name: 'Dr. Michael Chen', email: 'michael@medivault.com', password: 'password123', role: 'doctor', gender: 'male', phone: '555-2222' },
     ]);
 
     // 4. Create Patients
     const patientUsers = await User.create([
-      { name: 'John Doe', email: 'john@example.com', password: 'password123', role: 'patient', gender: 'male' },
-      { name: 'Jane Smith', email: 'jane@example.com', password: 'password123', role: 'patient', gender: 'female' },
+      { name: 'John Doe', email: 'john@example.com', password: 'password123', role: 'patient', gender: 'male', phone: '555-0001', address: { street: '123 Main St', city: 'Metropolis', state: 'NY', zipCode: '10001', country: 'USA' } },
+      { name: 'Jane Smith', email: 'jane@example.com', password: 'password123', role: 'patient', gender: 'female', phone: '555-0002', address: { street: '456 Elm St', city: 'Gotham', state: 'NJ', zipCode: '07001', country: 'USA' } },
     ]);
 
     // 5. Create Doctor Profiles
@@ -93,8 +125,9 @@ const seedData = async () => {
     await doctorProfiles[0].save();
     await doctorProfiles[1].save();
 
+    console.log('Seeding appointments...');
     // 8. Create appointments
-    await Appointment.create([
+    const appointments = await Appointment.create([
       {
         patient: patientUsers[0]._id,
         doctor: doctorUsers[0]._id,
@@ -113,6 +146,125 @@ const seedData = async () => {
         status: 'requested',
         createdBy: patientUsers[1]._id,
       },
+    ]);
+
+    console.log('Seeding prescriptions...');
+    // 9. Create Prescriptions
+    await Prescription.create([
+      {
+        patient: patientUsers[0]._id,
+        doctor: doctorUsers[0]._id,
+        medicines: [
+          { medicineName: 'Lisinopril', dosage: '10mg', frequency: 'Once daily', duration: '30 days', route: 'Oral', instructions: 'Take in the morning with water' },
+          { medicineName: 'Atorvastatin', dosage: '20mg', frequency: 'Once daily', duration: '90 days', route: 'Oral', instructions: 'Take before bedtime' }
+        ],
+        instructions: 'Avoid eating grapefruit or drinking grapefruit juice while taking Atorvastatin.',
+        startDate: new Date(),
+        endDate: new Date(new Date().setDate(new Date().getDate() + 30)),
+        status: 'active'
+      },
+      {
+        patient: patientUsers[1]._id,
+        doctor: doctorUsers[1]._id,
+        medicines: [
+          { medicineName: 'Sumatriptan', dosage: '50mg', frequency: 'As needed for migraine', duration: '10 days', route: 'Oral', instructions: 'Take one tablet at onset of migraine' }
+        ],
+        instructions: 'Do not exceed 100mg in a 24-hour period.',
+        startDate: new Date(),
+        endDate: new Date(new Date().setDate(new Date().getDate() + 10)),
+        status: 'active'
+      }
+    ]);
+
+    console.log('Seeding lab reports...');
+    // 10. Create Lab Reports
+    await LabReport.create([
+      {
+        patient: patientUsers[0]._id,
+        doctor: doctorUsers[0]._id,
+        testName: 'Lipid Panel',
+        testType: 'Blood Test',
+        orderedDate: new Date(new Date().setDate(new Date().getDate() - 5)),
+        resultDate: new Date(),
+        status: 'completed',
+        resultSummary: 'Total Cholesterol: 180 mg/dL (Normal), Triglycerides: 140 mg/dL (Normal), HDL: 50 mg/dL (Good), LDL: 102 mg/dL (Borderline)',
+        referenceRange: 'LDL < 100 mg/dL is optimal'
+      },
+      {
+        patient: patientUsers[1]._id,
+        doctor: doctorUsers[1]._id,
+        testName: 'Brain MRI',
+        testType: 'Imaging',
+        orderedDate: new Date(),
+        status: 'pending'
+      }
+    ]);
+
+    console.log('Seeding allergies & conditions...');
+    // 11. Create Allergies
+    await Allergy.create([
+      {
+        patient: patientUsers[0]._id,
+        allergen: 'Penicillin',
+        type: 'Drug',
+        severity: 'Severe',
+        reaction: 'Anaphylaxis and rash',
+        recordedBy: doctorUsers[0]._id
+      },
+      {
+        patient: patientUsers[0]._id,
+        allergen: 'Peanuts',
+        type: 'Food',
+        severity: 'Moderate',
+        reaction: 'Swelling of lips and hives',
+        recordedBy: doctorUsers[0]._id
+      }
+    ]);
+
+    // 12. Create Medical Conditions
+    await MedicalCondition.create([
+      {
+        patient: patientUsers[0]._id,
+        conditionName: 'Essential Hypertension',
+        diagnosisDate: new Date(new Date().setFullYear(new Date().getFullYear() - 2)),
+        status: 'Active',
+        severity: 'Moderate',
+        notes: 'Controlled well with Lisinopril',
+        diagnosedBy: doctorUsers[0]._id
+      },
+      {
+        patient: patientUsers[1]._id,
+        conditionName: 'Migraine without Aura',
+        diagnosisDate: new Date(new Date().setFullYear(new Date().getFullYear() - 1)),
+        status: 'Active',
+        severity: 'Severe',
+        notes: 'Sumatriptan prescribed for acute episodes',
+        diagnosedBy: doctorUsers[1]._id
+      }
+    ]);
+
+    console.log('Seeding audit logs...');
+    // 13. Create Audit Logs
+    await AuditLog.create([
+      {
+        actor: adminUser._id,
+        actorRole: 'admin',
+        action: 'LOGIN',
+        resourceType: 'User',
+        resourceId: adminUser._id,
+        ipAddress: '127.0.0.1',
+        userAgent: 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7)',
+        metadata: { success: true }
+      },
+      {
+        actor: doctorUsers[0]._id,
+        actorRole: 'doctor',
+        action: 'CREATE',
+        resourceType: 'MedicalRecord',
+        ipAddress: '192.168.1.50',
+        userAgent: 'Mozilla/5.0 (iPhone; CPU iPhone OS 16_5 like Mac OS X)',
+        metadata: { patientName: 'John Doe', chiefComplaint: 'Routine checkup' }
+      }
     ]);
 
     console.log('✅ Database seeded successfully!');

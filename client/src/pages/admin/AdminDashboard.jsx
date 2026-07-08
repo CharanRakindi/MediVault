@@ -1,13 +1,16 @@
 import { useQuery } from '@tanstack/react-query';
 import api from '../../api/axios';
 import StatCard from '../../components/StatCard';
-import { Users, UserPlus, Stethoscope, Calendar, TrendingUp } from 'lucide-react';
+import SkeletonLoader from '../../components/SkeletonLoader';
+import { Users, UserPlus, Stethoscope, Calendar, TrendingUp, ShieldAlert, Clock } from 'lucide-react';
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
 import { useAuth } from '../../contexts/AuthContext';
+import { format, subDays } from 'date-fns';
 
 const AdminDashboard = () => {
   const { user } = useAuth();
-  const { data: stats, isLoading, isError } = useQuery({
+  
+  const { data: stats, isLoading } = useQuery({
     queryKey: ['adminStats'],
     queryFn: async () => {
       const res = await api.get('/dashboard/stats');
@@ -15,24 +18,51 @@ const AdminDashboard = () => {
     }
   });
 
-  if (isLoading) return <div className="p-8 flex justify-center"><div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary-600"></div></div>;
-  if (isError) return <div className="p-8 text-red-500 bg-red-50 rounded-xl">Error loading dashboard statistics. Please try again.</div>;
+  const { data: appointments } = useQuery({
+    queryKey: ['adminAppointments'],
+    queryFn: async () => {
+      const res = await api.get('/appointments');
+      return res.data.data;
+    }
+  });
 
-  const mockChartData = [
-    { name: 'Mon', appointments: 4 },
-    { name: 'Tue', appointments: 3 },
-    { name: 'Wed', appointments: 2 },
-    { name: 'Thu', appointments: 6 },
-    { name: 'Fri', appointments: 8 },
-    { name: 'Sat', appointments: 9 },
-    { name: 'Sun', appointments: 0 },
-  ];
+  const { data: auditLogs } = useQuery({
+    queryKey: ['adminDashboardLogs'],
+    queryFn: async () => {
+      const res = await api.get('/admin/audit-logs', { params: { limit: 5 } });
+      return res.data.data;
+    }
+  });
+
+  if (isLoading) return <div className="p-8 flex justify-center"><div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary-600"></div></div>;
+
+  // Process appointment chart data dynamically (past 7 days)
+  const getWeeklyTrendData = () => {
+    const trendMap = {};
+    for (let i = 6; i >= 0; i--) {
+      const dateStr = format(subDays(new Date(), i), 'EEE');
+      trendMap[dateStr] = 0;
+    }
+
+    appointments?.forEach(apt => {
+      const dayName = format(new Date(apt.appointmentDate), 'EEE');
+      if (trendMap[dayName] !== undefined) {
+        trendMap[dayName] += 1;
+      }
+    });
+
+    return Object.keys(trendMap).map(day => ({
+      name: day,
+      appointments: trendMap[day]
+    }));
+  };
+
+  const chartData = getWeeklyTrendData();
 
   return (
-    <div className="space-y-8 pb-8">
+    <div className="space-y-8 pb-8 animate-fade-in">
       {/* Welcome Banner */}
-      <div className="relative rounded-2xl bg-gradient-to-r from-primary-600 to-indigo-700 p-8 shadow-lg shadow-indigo-200 overflow-hidden text-white animate-fade-in-up">
-        {/* Decorative elements */}
+      <div className="relative rounded-2xl bg-gradient-to-r from-primary-600 to-indigo-700 p-8 shadow-lg shadow-indigo-200 dark:shadow-indigo-950/20 overflow-hidden text-white animate-fade-in-up">
         <div className="absolute right-0 top-0 -mr-16 -mt-16 w-64 h-64 rounded-full bg-white opacity-10 blur-3xl"></div>
         <div className="absolute right-32 bottom-0 -mb-16 w-48 h-48 rounded-full bg-indigo-400 opacity-20 blur-2xl"></div>
         
@@ -83,27 +113,28 @@ const AdminDashboard = () => {
       </div>
 
       {/* Charts Section */}
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 animate-fade-in-up animation-delay-500">
-        <div className="lg:col-span-2 glass-card p-6">
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        {/* Weekly Trend Bar Chart */}
+        <div className="lg:col-span-2 bg-white dark:bg-slate-900 border border-slate-100 dark:border-slate-800 p-6 rounded-2xl shadow-sm">
           <div className="flex items-center justify-between mb-6">
             <div>
-              <h2 className="text-lg font-bold text-slate-900">Weekly Appointments Trend</h2>
-              <p className="text-sm text-slate-500 font-medium">Consultations over the last 7 days</p>
+              <h2 className="text-lg font-bold text-slate-900 dark:text-white">Weekly Appointments Trend</h2>
+              <p className="text-sm text-slate-500 dark:text-slate-400 font-medium">Consultations over the last 7 days</p>
             </div>
-            <div className="bg-emerald-50 text-emerald-600 px-3 py-1 rounded-full text-xs font-bold flex items-center gap-1">
+            <div className="bg-emerald-50 dark:bg-emerald-950/20 text-emerald-600 dark:text-emerald-400 px-3 py-1 rounded-full text-xs font-bold flex items-center gap-1">
               <TrendingUp className="w-3 h-3" />
               +12.5%
             </div>
           </div>
           <div className="h-[300px] w-full">
             <ResponsiveContainer width="100%" height="100%">
-              <BarChart data={mockChartData} margin={{ top: 10, right: 10, left: -20, bottom: 0 }}>
+              <BarChart data={chartData} margin={{ top: 10, right: 10, left: -20, bottom: 0 }}>
                 <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#f1f5f9" />
                 <XAxis dataKey="name" axisLine={false} tickLine={false} tick={{ fill: '#94a3b8', fontSize: 12 }} dy={10} />
                 <YAxis axisLine={false} tickLine={false} tick={{ fill: '#94a3b8', fontSize: 12 }} />
                 <Tooltip 
                   cursor={{fill: '#f8fafc'}} 
-                  contentStyle={{borderRadius: '12px', border: '1px solid #e2e8f0', boxShadow: '0 10px 15px -3px rgb(0 0 0 / 0.1)'}} 
+                  contentStyle={{borderRadius: '12px', border: '1px solid #e2e8f0'}} 
                 />
                 <Bar dataKey="appointments" fill="url(#colorUv)" radius={[6, 6, 0, 0]} barSize={40} />
                 <defs>
@@ -117,47 +148,38 @@ const AdminDashboard = () => {
           </div>
         </div>
 
-        {/* Quick Actions / System Health */}
-        <div className="glass-card p-6 flex flex-col">
-          <h2 className="text-lg font-bold text-slate-900 mb-6">System Health</h2>
-          
-          <div className="flex-1 space-y-6">
-            <div>
-              <div className="flex justify-between text-sm mb-2">
-                <span className="font-semibold text-slate-700">Database Storage</span>
-                <span className="font-bold text-primary-600">45%</span>
-              </div>
-              <div className="w-full bg-slate-100 rounded-full h-2 overflow-hidden">
-                <div className="bg-primary-500 h-2 rounded-full w-[45%]"></div>
-              </div>
-            </div>
-            
-            <div>
-              <div className="flex justify-between text-sm mb-2">
-                <span className="font-semibold text-slate-700">Server CPU</span>
-                <span className="font-bold text-emerald-600">12%</span>
-              </div>
-              <div className="w-full bg-slate-100 rounded-full h-2 overflow-hidden">
-                <div className="bg-emerald-500 h-2 rounded-full w-[12%]"></div>
-              </div>
-            </div>
-
-            <div>
-              <div className="flex justify-between text-sm mb-2">
-                <span className="font-semibold text-slate-700">Active Connections</span>
-                <span className="font-bold text-amber-600">89%</span>
-              </div>
-              <div className="w-full bg-slate-100 rounded-full h-2 overflow-hidden">
-                <div className="bg-amber-500 h-2 rounded-full w-[89%]"></div>
-              </div>
+        {/* Audit Log Overview Widget */}
+        <div className="bg-white dark:bg-slate-900 border border-slate-100 dark:border-slate-800 p-6 rounded-2xl shadow-sm flex flex-col justify-between">
+          <div>
+            <h2 className="text-lg font-bold text-slate-900 dark:text-white mb-4 flex items-center gap-1.5">
+              <ShieldAlert className="w-5 h-5 text-primary-500" />
+              Recent Actions
+            </h2>
+            <div className="space-y-4">
+              {auditLogs?.map((log) => (
+                <div key={log._id} className="flex gap-3 text-xs font-semibold">
+                  <div className="p-2 bg-slate-50 dark:bg-slate-850 rounded-xl text-slate-400 self-start shrink-0">
+                    <Clock className="w-3.5 h-3.5" />
+                  </div>
+                  <div>
+                    <p className="text-slate-850 dark:text-slate-200">
+                      {log.actor?.name || 'System'} performed <span className="text-primary-650">{log.action}</span>
+                    </p>
+                    <p className="text-slate-400 mt-0.5 font-medium">
+                      {log.resourceType} • {format(new Date(log.timestamp), 'MMM dd, hh:mm a')}
+                    </p>
+                  </div>
+                </div>
+              ))}
             </div>
           </div>
 
-          <div className="mt-8 p-4 bg-primary-50 rounded-xl border border-primary-100">
-            <h3 className="font-semibold text-primary-900 text-sm mb-1">Need help?</h3>
-            <p className="text-xs text-primary-700 mb-3">Check the documentation for admin features.</p>
-            <button className="text-xs font-bold text-white bg-primary-600 hover:bg-primary-700 px-4 py-2 rounded-lg w-full transition-colors">
-              View Docs
+          <div className="mt-6">
+            <button 
+              onClick={() => window.location.href = '/admin/audit-logs'}
+              className="w-full py-2.5 bg-slate-50 dark:bg-slate-800 hover:bg-slate-100 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-200 text-xs font-bold rounded-xl border border-slate-200 dark:border-slate-700 transition-colors"
+            >
+              View Full Logs
             </button>
           </div>
         </div>

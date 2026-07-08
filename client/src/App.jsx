@@ -4,12 +4,14 @@ import Home from './pages/Home';
 import Login from './pages/Login';
 import Register from './pages/Register';
 import Unauthorized from './pages/Unauthorized';
+import NotFound from './pages/NotFound';
 import ProtectedRoute from './components/ProtectedRoute';
 import RoleRoute from './components/RoleRoute';
 
 // Admin pages
 import AdminDashboard from './pages/admin/AdminDashboard';
 import AdminUsers from './pages/admin/AdminUsers';
+import AuditLogs from './pages/admin/AuditLogs';
 
 // Doctor pages
 import DoctorDashboard from './pages/doctor/DoctorDashboard';
@@ -20,6 +22,15 @@ import DoctorPatientDetail from './pages/doctor/DoctorPatientDetail';
 import PatientDashboard from './pages/patient/PatientDashboard';
 import PatientAppointments from './pages/patient/PatientAppointments';
 import PatientMedicalRecords from './pages/patient/PatientMedicalRecords';
+
+// Receptionist pages
+import ReceptionistDashboard from './pages/receptionist/ReceptionistDashboard';
+
+// Lab Tech pages
+import LabTechDashboard from './pages/labtech/LabTechDashboard';
+
+// Shared Profile
+import Profile from './pages/Profile';
 
 function App() {
   return (
@@ -34,10 +45,14 @@ function App() {
         {/* Protected Routes */}
         <Route element={<ProtectedRoute />}>
           <Route element={<RootLayout />}>
+            {/* Shared Route */}
+            <Route path="/profile" element={<Profile />} />
+
             {/* Admin Routes */}
             <Route element={<RoleRoute allowedRoles={['admin']} />}>
               <Route path="/admin/dashboard" element={<AdminDashboard />} />
               <Route path="/admin/users" element={<AdminUsers />} />
+              <Route path="/admin/audit-logs" element={<AuditLogs />} />
             </Route>
 
             {/* Doctor Routes */}
@@ -53,11 +68,22 @@ function App() {
               <Route path="/patient/appointments" element={<PatientAppointments />} />
               <Route path="/patient/records" element={<PatientMedicalRecords />} />
             </Route>
+
+            {/* Receptionist Routes */}
+            <Route element={<RoleRoute allowedRoles={['receptionist', 'admin']} />}>
+              <Route path="/receptionist/dashboard" element={<ReceptionistDashboard />} />
+            </Route>
+
+            {/* Lab Technician Routes */}
+            <Route element={<RoleRoute allowedRoles={['lab_technician', 'admin']} />}>
+              <Route path="/labtech/dashboard" element={<LabTechDashboard />} />
+            </Route>
           </Route>
         </Route>
         
         {/* Fallback */}
-        <Route path="*" element={<Navigate to="/" replace />} />
+        <Route path="/404" element={<NotFound />} />
+        <Route path="*" element={<Navigate to="/404" replace />} />
       </Routes>
     </Router>
   );

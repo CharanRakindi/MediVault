@@ -1,10 +1,14 @@
 import { Outlet, Link, useLocation } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
-import { LogOut, Activity, LayoutDashboard, Users, Stethoscope, Calendar, FileText, Menu, ChevronRight, Search, Sun, Moon } from 'lucide-react';
+import { LogOut, Activity, LayoutDashboard, Users, Calendar, FileText, Menu, ChevronRight, Search, Sun, Moon, User, HelpCircle, Shield, FlaskConical, Clock } from 'lucide-react';
 import { useState, useEffect } from 'react';
 import { cn } from '../utils/cn';
 import CommandPalette from '../components/CommandPalette';
 import NotificationCenter from '../components/NotificationCenter';
+import OfflineBanner from '../components/OfflineBanner';
+import OnboardingTour from '../components/OnboardingTour';
+import KeyboardShortcutsHelp from '../components/KeyboardShortcutsHelp';
+import ErrorBoundary from '../components/ErrorBoundary';
 import { useTheme } from 'next-themes';
 
 const RootLayout = () => {
@@ -13,11 +17,19 @@ const RootLayout = () => {
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
   const [scrolled, setScrolled] = useState(false);
   const { theme, setTheme } = useTheme();
+  const [currentTime, setCurrentTime] = useState(new Date());
 
   useEffect(() => {
     const handleScroll = () => setScrolled(window.scrollY > 10);
     window.addEventListener('scroll', handleScroll);
-    return () => window.removeEventListener('scroll', handleScroll);
+    
+    // Live clock update
+    const clockInterval = setInterval(() => setCurrentTime(new Date()), 1000);
+
+    return () => {
+      window.removeEventListener('scroll', handleScroll);
+      clearInterval(clockInterval);
+    };
   }, []);
 
   const navigation = {
@@ -25,14 +37,26 @@ const RootLayout = () => {
       { name: 'Dashboard', href: '/patient/dashboard', icon: LayoutDashboard },
       { name: 'Appointments', href: '/patient/appointments', icon: Calendar },
       { name: 'Medical Records', href: '/patient/records', icon: FileText },
+      { name: 'Profile & Settings', href: '/profile', icon: User },
     ],
     doctor: [
       { name: 'Dashboard', href: '/doctor/dashboard', icon: LayoutDashboard },
       { name: 'Patients', href: '/doctor/patients', icon: Users },
+      { name: 'Profile & Settings', href: '/profile', icon: User },
     ],
     admin: [
       { name: 'Dashboard', href: '/admin/dashboard', icon: LayoutDashboard },
       { name: 'Users', href: '/admin/users', icon: Users },
+      { name: 'Audit Logs', href: '/admin/audit-logs', icon: FileText },
+      { name: 'Profile & Settings', href: '/profile', icon: User },
+    ],
+    receptionist: [
+      { name: 'Queue Dashboard', href: '/receptionist/dashboard', icon: LayoutDashboard },
+      { name: 'Profile & Settings', href: '/profile', icon: User },
+    ],
+    lab_technician: [
+      { name: 'Lab Dashboard', href: '/labtech/dashboard', icon: FlaskConical },
+      { name: 'Profile & Settings', href: '/profile', icon: User },
     ],
   };
 
@@ -41,6 +65,9 @@ const RootLayout = () => {
   return (
     <div className="min-h-screen bg-[#F8FAFC] dark:bg-slate-950 flex flex-col font-sans transition-colors duration-300">
       <CommandPalette />
+      <OfflineBanner />
+      <OnboardingTour />
+      <KeyboardShortcutsHelp />
       
       {/* Header */}
       <header className={cn(
@@ -63,11 +90,22 @@ const RootLayout = () => {
                 MediVault
               </span>
             </div>
+
+            {/* Breadcrumb / Current Date for Large screens */}
+            <div className="hidden lg:flex items-center gap-2 text-xs font-semibold text-slate-500 dark:text-slate-400">
+              <Clock className="w-3.5 h-3.5 text-primary-500" />
+              <span>{currentTime.toLocaleDateString(undefined, { weekday: 'short', month: 'short', day: 'numeric' })}</span>
+              <span className="text-slate-300 dark:text-slate-700">•</span>
+              <span className="font-mono text-slate-600 dark:text-slate-300">
+                {currentTime.toLocaleTimeString(undefined, { hour: '2-digit', minute: '2-digit', second: '2-digit' })}
+              </span>
+            </div>
           </div>
           
           <div className="flex items-center gap-3 sm:gap-5">
             {/* Search Trigger */}
             <button
+              id="search-trigger"
               onClick={() => document.dispatchEvent(new KeyboardEvent('keydown', { key: 'k', metaKey: true }))}
               className="hidden sm:flex items-center gap-2 text-sm text-slate-400 dark:text-slate-500 bg-slate-50 dark:bg-slate-800/50 hover:bg-slate-100 dark:hover:bg-slate-800 px-3 py-1.5 rounded-lg border border-slate-200 dark:border-slate-700/50 transition-colors"
             >
@@ -88,6 +126,7 @@ const RootLayout = () => {
 
             {/* Theme Toggle */}
             <button
+              id="theme-toggle"
               onClick={() => setTheme(theme === 'dark' ? 'light' : 'dark')}
               className="p-2 text-slate-400 hover:text-amber-500 dark:hover:text-amber-400 hover:bg-amber-50 dark:hover:bg-amber-900/20 rounded-lg transition-colors"
               title="Toggle Theme"
@@ -100,8 +139,8 @@ const RootLayout = () => {
             <div className="flex items-center gap-3">
               <div className="hidden sm:flex flex-col items-end">
                 <span className="text-sm font-semibold text-slate-700 dark:text-slate-200 leading-none">{user?.name}</span>
-                <span className="text-[11px] font-medium text-primary-600 dark:text-primary-400 uppercase tracking-wider mt-1">
-                  {user?.role}
+                <span className="text-[10px] font-bold text-primary-600 dark:text-primary-400 uppercase tracking-widest mt-1 bg-primary-50 dark:bg-primary-950/40 px-1.5 py-0.5 rounded border border-primary-100 dark:border-primary-900/50">
+                  {user?.role.replace('_', ' ')}
                 </span>
               </div>
               <div className="w-9 h-9 bg-gradient-to-br from-primary-100 to-primary-200 dark:from-primary-900/50 dark:to-primary-800/50 rounded-full flex items-center justify-center text-primary-700 dark:text-primary-300 font-bold shadow-inner ring-2 ring-white dark:ring-slate-800">
@@ -188,6 +227,9 @@ const RootLayout = () => {
                 <div className="w-2 h-2 rounded-full bg-emerald-400 shadow-[0_0_8px_rgba(52,211,153,0.8)] animate-pulse" />
                 <span className="text-xs font-medium text-slate-300">System Online</span>
               </div>
+              <span className="text-[10px] font-bold text-slate-400 hover:text-white cursor-pointer transition-colors" onClick={() => document.dispatchEvent(new KeyboardEvent('keydown', { key: '?' }))}>
+                Shortcuts (?)
+              </span>
             </div>
           </div>
         </aside>
@@ -195,7 +237,9 @@ const RootLayout = () => {
         {/* Main content */}
         <main className="flex-1 overflow-y-auto bg-gradient-mesh dark:bg-slate-950">
           <div className="max-w-7xl mx-auto p-4 sm:p-6 lg:p-8 animate-fade-in">
-            <Outlet />
+            <ErrorBoundary>
+              <Outlet />
+            </ErrorBoundary>
           </div>
         </main>
       </div>

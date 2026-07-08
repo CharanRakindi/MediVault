@@ -1,6 +1,7 @@
 import User from '../models/User.js';
 import { generateTokens, setTokenCookies, clearTokenCookies } from '../utils/generateToken.js';
 import jwt from 'jsonwebtoken';
+import { logAction } from '../utils/auditLogger.js';
 
 // @desc    Register a new user
 // @route   POST /api/v1/auth/register
@@ -31,6 +32,18 @@ export const register = async (req, res, next) => {
     await user.save();
 
     setTokenCookies(res, accessToken, refreshToken);
+
+    // Audit log
+    await logAction(
+      user._id,
+      user.role,
+      'REGISTER',
+      'User',
+      user._id,
+      req.ip,
+      req.headers['user-agent'],
+      { name: user.name, email: user.email }
+    );
 
     res.status(201).json({
       success: true,
@@ -71,6 +84,18 @@ export const login = async (req, res, next) => {
 
     setTokenCookies(res, accessToken, refreshToken);
 
+    // Audit log
+    await logAction(
+      user._id,
+      user.role,
+      'LOGIN',
+      'User',
+      user._id,
+      req.ip,
+      req.headers['user-agent'],
+      { email: user.email }
+    );
+
     res.status(200).json({
       success: true,
       message: 'Logged in successfully',
@@ -96,6 +121,18 @@ export const logout = async (req, res, next) => {
       if (user) {
         user.refreshToken = undefined;
         await user.save();
+
+        // Audit log
+        await logAction(
+          user._id,
+          user.role,
+          'LOGOUT',
+          'User',
+          user._id,
+          req.ip,
+          req.headers['user-agent'],
+          { email: user.email }
+        );
       }
     }
     clearTokenCookies(res);

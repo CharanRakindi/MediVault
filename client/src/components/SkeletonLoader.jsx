@@ -37,3 +37,5 @@ export const SkeletonTable = ({ rows = 5 }) => (
     ))}
   </div>
 );
+
+export default SkeletonLine;
