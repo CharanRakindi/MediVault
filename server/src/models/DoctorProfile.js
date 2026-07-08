@@ -57,8 +57,6 @@ const doctorProfileSchema = new mongoose.Schema(
   }
 );
 
-doctorProfileSchema.index({ doctorId: 1 });
-doctorProfileSchema.index({ user: 1 });
 doctorProfileSchema.index({ department: 1 });
 
 const DoctorProfile = mongoose.model('DoctorProfile', doctorProfileSchema);
