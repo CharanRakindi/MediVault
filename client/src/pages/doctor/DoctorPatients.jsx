@@ -27,13 +27,13 @@ const DoctorPatients = () => {
   if (isLoading) return <div className="card p-8"><SkeletonTable rows={5} /></div>;
 
   return (
-    <div className="space-y-6 pb-8 animate-fade-in">
+    <div className="workspace">
       <div className="page-header">
         <div>
           <h1 className="page-title">Patient directory</h1>
           <p className="page-subtitle">Clinical records under your care</p>
         </div>
-        <div className="badge badge-neutral gap-1.5 px-3 py-1.5 text-[12.5px]">
+        <div className="badge badge-neutral gap-1.5 px-3 py-1.5 text-[12px]">
           <Users className="h-3.5 w-3.5" />
           {filteredPatients?.length || 0} patients
         </div>

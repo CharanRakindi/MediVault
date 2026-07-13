@@ -176,7 +176,7 @@ const RootLayout = () => {
   }
 
   return (
-    <div className="flex min-h-screen flex-col bg-background font-sans">
+    <div className="flex min-h-screen flex-col bg-[#F7F6F3] font-sans">
       <CommandPalette />
       <OfflineBanner />
       <OnboardingTour />
@@ -187,8 +187,8 @@ const RootLayout = () => {
         className={cn(
           'sticky top-0 z-30 border-b transition-all duration-300',
           scrolled
-            ? 'border-slate-200/80 bg-white/85 shadow-sm backdrop-blur-xl'
-            : 'border-transparent bg-white/70 backdrop-blur-md'
+            ? 'border-slate-200/70 bg-[#F7F6F3]/90 shadow-sm backdrop-blur-xl'
+            : 'border-slate-200/40 bg-[#F7F6F3]/75 backdrop-blur-md'
         )}
       >
         <div className="flex h-14 items-center justify-between px-4 sm:px-6 lg:px-8">
@@ -202,7 +202,10 @@ const RootLayout = () => {
               <Menu className="h-5 w-5" />
             </button>
 
-            <Link to="/" className="brand-mark text-slate-900 lg:hidden">
+            <Link
+              to="/"
+              className="text-[16px] font-semibold tracking-[-0.02em] text-slate-900 lg:hidden"
+            >
               Clinova
             </Link>
 
@@ -301,15 +304,20 @@ const RootLayout = () => {
             isSidebarOpen ? 'translate-x-0' : '-translate-x-full'
           )}
         >
-          <div className="hidden h-14 items-center justify-between border-b border-white/8 px-6 lg:flex">
-            <Link to="/" className="brand-mark text-white">
+          <div className="hidden h-14 items-center justify-between border-b border-white/[0.06] px-6 lg:flex">
+            <Link
+              to="/"
+              className="text-[16px] font-semibold tracking-[-0.02em] text-white"
+            >
               Clinova
             </Link>
           </div>
 
           {/* Mobile drawer header */}
-          <div className="flex h-14 items-center justify-between border-b border-white/8 px-5 lg:hidden">
-            <span className="brand-mark text-white">Clinova</span>
+          <div className="flex h-14 items-center justify-between border-b border-white/[0.06] px-5 lg:hidden">
+            <span className="text-[16px] font-semibold tracking-[-0.02em] text-white">
+              Clinova
+            </span>
             <button
               type="button"
               onClick={() => setIsSidebarOpen(false)}
@@ -320,12 +328,14 @@ const RootLayout = () => {
           </div>
 
           <nav className="custom-scrollbar flex-1 space-y-0.5 overflow-y-auto px-3 py-5">
-            <p className="mb-3 px-3 text-[10px] font-medium uppercase tracking-[0.14em] text-white/35">
-              Menu
+            <p className="mb-3 px-3 text-[10px] font-medium uppercase tracking-[0.16em] text-white/30">
+              Workspace
             </p>
             {navItems.map((item, index) => {
               const Icon = item.icon;
-              const isActive = location.pathname === item.href;
+              const isActive =
+                location.pathname === item.href ||
+                (item.href !== '/' && location.pathname.startsWith(item.href + '/'));
               return (
                 <motion.div
                   key={item.name}
@@ -337,24 +347,26 @@ const RootLayout = () => {
                     to={item.href}
                     onClick={() => setIsSidebarOpen(false)}
                     className={cn(
-                      'group flex items-center justify-between rounded-xl px-3 py-2.5 transition-all duration-200',
+                      'group flex items-center justify-between rounded-xl px-3 py-2.5 transition-colors duration-200',
                       isActive
-                        ? 'bg-white/10 text-white'
-                        : 'text-white/55 hover:bg-white/5 hover:text-white'
+                        ? 'bg-white/[0.12] text-white'
+                        : 'text-white/50 hover:bg-white/[0.06] hover:text-white'
                     )}
                   >
                     <div className="flex items-center gap-3">
                       <Icon
                         className={cn(
                           'h-[18px] w-[18px] transition-colors',
-                          isActive ? 'text-white' : 'text-white/40 group-hover:text-white/70'
+                          isActive ? 'text-white' : 'text-white/35 group-hover:text-white/65'
                         )}
                         strokeWidth={1.75}
                       />
-                      <span className="text-[13px] font-normal">{item.name}</span>
+                      <span className="text-[13px] font-normal tracking-[-0.01em]">
+                        {item.name}
+                      </span>
                     </div>
                     {isActive && (
-                      <span className="h-1.5 w-1.5 rounded-full bg-white shadow-[0_0_8px_rgba(255,255,255,0.6)]" />
+                      <span className="h-1.5 w-1.5 rounded-full bg-white/90" />
                     )}
                   </Link>
                 </motion.div>
@@ -362,11 +374,13 @@ const RootLayout = () => {
             })}
           </nav>
 
-          <div className="border-t border-white/8 p-4">
-            <div className="flex items-center justify-between rounded-xl bg-white/5 px-3.5 py-3">
+          <div className="border-t border-white/[0.06] p-4">
+            <div className="flex items-center justify-between rounded-xl bg-white/[0.04] px-3.5 py-3">
               <div className="flex items-center gap-2.5">
-                <span className="h-1.5 w-1.5 animate-pulse rounded-full bg-emerald-400 shadow-[0_0_8px_rgba(52,211,153,0.7)]" />
-                <span className="text-[11.5px] font-normal text-white/55">System online</span>
+                <span className="h-1.5 w-1.5 animate-pulse rounded-full bg-emerald-400/90" />
+                <span className="text-[11.5px] font-normal tracking-[-0.01em] text-white/50">
+                  System online
+                </span>
               </div>
               <button
                 type="button"

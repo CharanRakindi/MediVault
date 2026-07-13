@@ -142,15 +142,13 @@ const DoctorDashboard = () => {
   };
 
   return (
-    <div className="space-y-6 pb-8 animate-fade-in">
+    <div className="workspace">
       <div className="page-header">
         <div>
-          <h1 className="page-title">
-            Workspace · {formatDoctorName(user?.name)}
-          </h1>
+          <h1 className="page-title">{formatDoctorName(user?.name)}</h1>
           <p className="page-subtitle">
             {todayAppointments.length} consultations today ·{' '}
-            {todayAppointments.filter((a) => a.status !== 'completed').length} active tasks
+            {todayAppointments.filter((a) => a.status !== 'completed').length} active
           </p>
         </div>
 
@@ -168,7 +166,7 @@ const DoctorDashboard = () => {
             type="button"
             onClick={() => {
               setIsAvailable(!isAvailable);
-              toast.info(`Availability updated: ${!isAvailable ? 'Active' : 'Offline'}`);
+              toast.info(`Availability: ${!isAvailable ? 'Available' : 'Offline'}`);
             }}
             className="btn btn-secondary"
           >
@@ -182,103 +180,100 @@ const DoctorDashboard = () => {
         </div>
       </div>
       
-      {/* Task & Context Oriented Stat Cards */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-5">
-        <StatCard 
+      <div className="grid grid-cols-1 gap-4 md:grid-cols-3">
+        <StatCard
           index={0}
-          title="Today's Schedule" 
-          value={todayAppointments.length} 
-          icon={Calendar} 
-          trend={`${todayAppointments.filter(a => a.status !== 'completed').length} pending`}
+          title="Today's schedule"
+          value={todayAppointments.length}
+          icon={Calendar}
+          trend={`${todayAppointments.filter((a) => a.status !== 'completed').length} pending`}
           trendType="neutral"
-          contextText={todayAppointments.length > 0 ? `Next slot: ${todayAppointments.find(a => a.status !== 'completed')?.timeSlot || 'None left'}` : 'No appointments scheduled'}
-          actionText="View schedule"
+          contextText={
+            todayAppointments.length > 0
+              ? `Next: ${todayAppointments.find((a) => a.status !== 'completed')?.timeSlot || '—'}`
+              : 'No appointments scheduled'
+          }
+          actionText="View calendar"
           actionHref="#calendar-view"
         />
-        <StatCard 
+        <StatCard
           index={1}
-          title="Patient Directory" 
-          value={stats?.totalAssignedPatients || 0} 
-          icon={Users} 
-          contextText="Directly assigned patients under your clinical care"
-          actionText="Open patient files"
+          title="Patients"
+          value={stats?.totalAssignedPatients || 0}
+          icon={Users}
+          contextText="Under your care"
+          actionText="Open directory"
           actionHref="/doctor/patients"
         />
-        <StatCard 
+        <StatCard
           index={2}
-          title="Completed Today" 
-          value={todayAppointments.filter(a => a.status === 'completed').length} 
-          icon={CheckCircle} 
-          trend="All-time stats"
-          trendType="positive"
-          contextText={`Cumulative sign-offs: ${stats?.completedConsultations || 0}`}
+          title="Completed today"
+          value={todayAppointments.filter((a) => a.status === 'completed').length}
+          icon={CheckCircle}
+          contextText={`${stats?.completedConsultations || 0} all-time sign-offs`}
           actionText="Review cases"
           actionHref="/doctor/patients"
         />
       </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-        {/* Patient Queue & Notes */}
-        <div className="lg:col-span-1 space-y-6">
-          {/* Today's Queue */}
-          <div id="consultations-queue" className="card p-5 space-y-4">
+      <div className="grid grid-cols-1 gap-5 lg:grid-cols-3">
+        <div className="space-y-5 lg:col-span-1">
+          <div id="consultations-queue" className="card space-y-4 p-5">
             <div>
-              <h3 className="text-[14.5px] font-semibold text-slate-800 flex items-center gap-2">
-                <Clock className="w-4 h-4 text-primary-500" />
-                Consultation Queue
+              <h3 className="panel-title flex items-center gap-2">
+                <Clock className="h-4 w-4 text-slate-400" strokeWidth={1.75} />
+                Consultation queue
               </h3>
-              <p className="text-[11.5px] font-medium text-slate-400 mt-0.5">Prioritized by schedule slot</p>
+              <p className="panel-meta">Prioritized by time slot</p>
             </div>
             
             <div className="space-y-2 max-h-[320px] overflow-y-auto pr-1">
               <AnimatePresence initial={false}>
                 {todayAppointments.length === 0 ? (
-                  <motion.div 
-                    initial={{ opacity: 0 }}
-                    animate={{ opacity: 1 }}
-                    className="text-[12.5px] font-medium text-slate-400 py-8 text-center"
-                  >
-                    No appointments scheduled today
-                  </motion.div>
+                  <div className="empty-state py-8">No appointments today</div>
                 ) : (
-                  todayAppointments.map((apt, index) => (
-                    <motion.div 
+                  todayAppointments.map((apt) => (
+                    <motion.div
                       key={apt._id}
-                      initial={{ opacity: 0, height: 0, y: 10 }}
-                      animate={{ opacity: 1, height: 'auto', y: 0 }}
-                      exit={{ opacity: 0, height: 0, x: -30 }}
-                      transition={{ type: 'spring', stiffness: 500, damping: 30 }}
+                      initial={{ opacity: 0, y: 8 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      exit={{ opacity: 0 }}
                       className={cn(
-                        "flex justify-between items-center p-3 rounded-xl border transition-colors overflow-hidden",
-                        apt.status === 'completed' 
-                          ? "border-slate-100 bg-slate-50/50 opacity-70"
-                          : "border-slate-200/70 bg-white hover:border-slate-300"
+                        'list-row',
+                        apt.status === 'completed' && 'opacity-60'
                       )}
                     >
-                      <div>
-                        <p className={cn(
-                          "text-[13px] font-semibold text-slate-800",
-                          apt.status === 'completed' && "line-through text-slate-400"
-                        )}>
+                      <div className="min-w-0">
+                        <p
+                          className={cn(
+                            'truncate text-[13px] font-medium text-slate-800',
+                            apt.status === 'completed' && 'line-through text-slate-400'
+                          )}
+                        >
                           {apt.patient?.name}
                         </p>
-                        <p className="text-[11px] font-medium text-slate-400 mt-0.5">{apt.timeSlot} • {apt.reason}</p>
+                        <p className="mt-0.5 text-[11.5px] text-slate-400">
+                          {apt.timeSlot} · {apt.reason}
+                        </p>
                       </div>
-                      <div className="flex gap-1">
+                      <div className="flex shrink-0 gap-1">
                         {apt.status !== 'completed' && (
                           <button
-                            onClick={() => updateStatus.mutate({ id: apt._id, status: 'completed' })}
-                            className="p-1 text-emerald-600 hover:bg-emerald-50 rounded-lg transition-colors"
+                            type="button"
+                            onClick={() =>
+                              updateStatus.mutate({ id: apt._id, status: 'completed' })
+                            }
+                            className="rounded-lg p-1.5 text-emerald-600 transition-colors hover:bg-emerald-50"
                             title="Complete consultation"
                           >
-                            <Check className="w-3.5 h-3.5" />
+                            <Check className="h-3.5 w-3.5" />
                           </button>
                         )}
-                        <Link 
+                        <Link
                           to={`/doctor/patients/${apt.patient?._id}`}
-                          className="p-1 text-slate-400 hover:text-slate-600 hover:bg-slate-50 rounded-lg transition-colors"
+                          className="rounded-lg p-1.5 text-slate-400 transition-colors hover:bg-slate-50 hover:text-slate-700"
                         >
-                          <ChevronRight className="w-4 h-4" />
+                          <ChevronRight className="h-4 w-4" />
                         </Link>
                       </div>
                     </motion.div>

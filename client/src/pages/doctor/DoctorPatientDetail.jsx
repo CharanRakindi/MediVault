@@ -180,7 +180,7 @@ const DoctorPatientDetail = () => {
   const cn = (...classes) => classes.filter(Boolean).join(' ');
 
   return (
-    <div className="space-y-6 pb-8 animate-fade-in">
+    <div className="workspace">
       <div className="page-header">
         <div className="flex items-center gap-3">
           <Link
@@ -190,8 +190,13 @@ const DoctorPatientDetail = () => {
             <ArrowLeft className="h-4 w-4 text-slate-500" />
           </Link>
           <div>
-            <h1 className="page-title">Patient file</h1>
-            <p className="page-subtitle">Clinical details and history</p>
+            <h1 className="page-title">
+              {patient?.user?.name || 'Patient file'}
+            </h1>
+            <p className="page-subtitle">
+              {patient?.patientId ? `${patient.patientId} · ` : ''}
+              Clinical details and history
+            </p>
           </div>
         </div>
         <button

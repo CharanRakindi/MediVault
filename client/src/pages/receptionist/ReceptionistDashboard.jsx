@@ -134,13 +134,16 @@ export default function ReceptionistDashboard() {
   ) || [];
 
   return (
-    <div className="space-y-6 pb-8 animate-fade-in">
+    <div className="workspace">
       <div className="page-header">
         <div>
           <h1 className="page-title">Reception workspace</h1>
           <p className="page-subtitle">
-            Register patients, schedule slots, and check in visits
+            Register patients, schedule visits, and manage the check-in queue
           </p>
+        </div>
+        <div className="badge badge-neutral px-3 py-1.5 text-[12px]">
+          {appointments?.length || 0} appointments
         </div>
       </div>
 

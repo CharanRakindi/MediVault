@@ -34,7 +34,7 @@ export default {
         danger: {
           DEFAULT: '#EF4444',
         },
-        background: '#F6F7F9',
+        background: '#F7F6F3',
         card: '#FFFFFF',
         sidebar: '#0B0F19',
       },

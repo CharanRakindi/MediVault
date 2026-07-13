@@ -40,12 +40,12 @@ export default function Profile() {
   ];
 
   return (
-    <div className="animate-fade-in space-y-6 pb-8">
+    <div className="workspace">
       <div className="page-header">
         <div>
           <h1 className="page-title">Account profile</h1>
           <p className="page-subtitle">
-            Your personal information and access role settings
+            Your personal information and access role
           </p>
         </div>
       </div>

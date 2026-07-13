@@ -145,11 +145,13 @@ const AdminUsers = () => {
   if (isLoading) return <div className="card p-8"><SkeletonTable rows={5} /></div>;
 
   return (
-    <div className="space-y-6 pb-8 animate-fade-in">
+    <div className="workspace">
       <div className="page-header">
         <div>
           <h1 className="page-title">User management</h1>
-          <p className="page-subtitle">Manage platform access and roles</p>
+          <p className="page-subtitle">
+            Add doctors & lab staff · manage access and roles
+          </p>
         </div>
         <div className="flex flex-wrap items-center gap-2.5">
           <button

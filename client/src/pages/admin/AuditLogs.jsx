@@ -48,7 +48,7 @@ export default function AuditLogs() {
   };
 
   return (
-    <div className="space-y-6 pb-8 animate-fade-in">
+    <div className="workspace">
       <div className="page-header">
         <div>
           <h1 className="page-title">Audit logs</h1>
