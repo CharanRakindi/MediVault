@@ -3,7 +3,7 @@ import { useParams, Link } from 'react-router-dom';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import api from '../../api/axios';
 import {
-  ArrowLeft, Plus, X, FileText, Heart, Thermometer, Activity, User, Phone,
+  ArrowLeft, Plus, X, FileText, Heart, Thermometer, Activity,
   CheckCircle, Paperclip, AlertTriangle, ShieldAlert, Stethoscope, Droplet,
   RotateCcw,
 } from 'lucide-react';
