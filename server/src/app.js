@@ -26,13 +26,29 @@ const __dirname = path.dirname(__filename);
 
 const app = express();
 
+// Behind nginx / load balancers (rate limit + secure cookies)
+if (process.env.TRUST_PROXY === '1' || process.env.NODE_ENV === 'production') {
+  app.set('trust proxy', 1);
+}
+
 // Security Middleware
 // Configure Helmet for allowing image loading from localhost/cross-origin (important for uploads)
 app.use(helmet({
   crossOriginResourcePolicy: false,
 }));
+
+const clientUrl = process.env.CLIENT_URL || 'http://localhost:5173';
+const allowedOrigins = clientUrl.split(',').map((o) => o.trim()).filter(Boolean);
+
 app.use(cors({
-  origin: process.env.CLIENT_URL || 'http://localhost:5173',
+  origin(origin, callback) {
+    // Allow non-browser clients (curl, health checks) with no Origin
+    if (!origin) return callback(null, true);
+    if (allowedOrigins.includes(origin) || allowedOrigins.includes('*')) {
+      return callback(null, true);
+    }
+    return callback(null, false);
+  },
   credentials: true,
 }));
 
@@ -47,19 +63,32 @@ app.use(cookieParser());
 // Logging
 if (process.env.NODE_ENV === 'development') {
   app.use(morgan('dev'));
+} else {
+  app.use(morgan('combined'));
 }
 
 // Rate Limiting
 const limiter = rateLimit({
   windowMs: 15 * 60 * 1000, // 15 minutes
-  max: 100, // limit each IP to 100 requests per windowMs
-  message: 'Too many requests from this IP, please try again later.'
+  max: Number(process.env.RATE_LIMIT_MAX) || 200,
+  standardHeaders: true,
+  legacyHeaders: false,
+  message: 'Too many requests from this IP, please try again later.',
 });
 app.use('/api', limiter);
 
-// Basic route for testing
-app.get('/', (req, res) => {
-  res.send('Clinova API is running...');
+// Health / readiness (for Docker, k8s, load balancers)
+app.get('/health', (_req, res) => {
+  res.status(200).json({
+    status: 'ok',
+    service: 'clinova-api',
+    uptime: process.uptime(),
+    timestamp: new Date().toISOString(),
+  });
+});
+
+app.get('/', (_req, res) => {
+  res.json({ name: 'Clinova API', version: '1.0.0', docs: '/health' });
 });
 
 // Routes
