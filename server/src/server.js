@@ -12,16 +12,18 @@ const HOST = process.env.HOST || '0.0.0.0';
 const server = http.createServer(app);
 initSocket(server);
 
-const start = async () => {
-  await connectDB();
-  server.listen(PORT, HOST, () => {
-    console.log(`Clinova API listening on ${HOST}:${PORT} (${process.env.NODE_ENV || 'development'})`);
-  });
-};
+// Listen first so /health works even when Mongo is briefly unavailable (CI smoke, restarts)
+server.listen(PORT, HOST, () => {
+  console.log(`Clinova API listening on ${HOST}:${PORT} (${process.env.NODE_ENV || 'development'})`);
+});
 
-start().catch((err) => {
-  console.error('Failed to start server:', err.message);
-  process.exit(1);
+// Background DB connect — do not block the HTTP server
+connectDB().catch((err) => {
+  console.error('MongoDB connection failed:', err.message);
+  // Keep serving /health unless hard-required (e.g. production k8s with REQUIRE_DB=true)
+  if (process.env.REQUIRE_DB === 'true') {
+    process.exit(1);
+  }
 });
 
 const shutdown = (signal) => {
@@ -37,5 +39,4 @@ process.on('SIGINT', () => shutdown('SIGINT'));
 
 process.on('unhandledRejection', (err) => {
   console.error(`Unhandled rejection: ${err?.message || err}`);
-  server.close(() => process.exit(1));
 });
