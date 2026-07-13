@@ -1,12 +1,10 @@
-import { useState } from 'react';
 import { Calendar, dateFnsLocalizer } from 'react-big-calendar';
 import withDragAndDrop from 'react-big-calendar/lib/addons/dragAndDrop';
 import { format, parse, startOfWeek, getDay } from 'date-fns';
 import enUS from 'date-fns/locale/en-US';
 import 'react-big-calendar/lib/css/react-big-calendar.css';
 import 'react-big-calendar/lib/addons/dragAndDrop/styles.css';
-import { cn } from '../utils/cn';
-import './Calendar.css'; // Custom overrides for styling
+import './Calendar.css';
 
 const locales = {
   'en-US': enUS,
@@ -55,7 +53,7 @@ export default function InteractiveCalendar({ events = [], onSelectEvent, onEven
     };
   });
 
-  const eventStyleGetter = (event, start, end, isSelected) => {
+  const eventStyleGetter = (event) => {
     const apt = event.resource;
     let backgroundColor = '#38bdf8'; // Default primary
     
