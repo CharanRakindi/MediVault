@@ -1,5 +1,5 @@
 import { useState, useRef, useEffect } from 'react';
-import { Bell, Check, Trash2 } from 'lucide-react';
+import { Bell, Trash2 } from 'lucide-react';
 import { useSocket } from '../contexts/SocketContext';
 import { cn } from '../utils/cn';
 
