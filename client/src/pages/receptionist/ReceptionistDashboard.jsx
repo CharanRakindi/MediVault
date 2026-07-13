@@ -8,8 +8,7 @@ import { formatDoctorName } from '../../utils/format';
 
 export default function ReceptionistDashboard() {
   const queryClient = useQueryClient();
-  const [patientSearch, setPatientSearch] = useState('');
-  
+
   // Registration form state (no hardcoded password — server generates temp)
   const [registerData, setRegisterData] = useState({
     name: '', email: '', phone: '', gender: 'male',
@@ -127,11 +126,6 @@ export default function ReceptionistDashboard() {
     }
     bookAppointment.mutate(aptData);
   };
-
-  const filteredPatients = patients?.filter(p => 
-    p.user?.name.toLowerCase().includes(patientSearch.toLowerCase()) ||
-    p.user?.email.toLowerCase().includes(patientSearch.toLowerCase())
-  ) || [];
 
   return (
     <div className="workspace">
