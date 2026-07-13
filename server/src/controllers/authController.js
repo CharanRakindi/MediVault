@@ -20,7 +20,7 @@ export const register = async (req, res, next) => {
       name,
       email,
       password,
-      role,
+      role: 'patient',
       phone,
       gender,
     });
@@ -182,6 +182,45 @@ export const getMe = async (req, res, next) => {
     res.status(200).json({
       success: true,
       data: user,
+    });
+  } catch (error) {
+    next(error);
+  }
+};
+
+// @desc    Update user password
+// @route   PATCH /api/v1/auth/update-password
+// @access  Private
+export const updatePassword = async (req, res, next) => {
+  try {
+    const { oldPassword, newPassword } = req.body;
+    
+    const user = await User.findById(req.user._id).select('+password');
+    
+    if (!user || !(await user.matchPassword(oldPassword))) {
+      return res.status(401).json({ success: false, message: 'Invalid current password' });
+    }
+    
+    user.password = newPassword;
+    user.mustChangePassword = false;
+    user.passwordChangedAt = Date.now();
+    await user.save();
+    
+    // Audit log
+    await logAction(
+      user._id,
+      user.role,
+      'UPDATE',
+      'User',
+      user._id,
+      req.ip,
+      req.headers['user-agent'],
+      { action: 'UPDATE_PASSWORD' }
+    );
+    
+    res.status(200).json({
+      success: true,
+      message: 'Password updated successfully'
     });
   } catch (error) {
     next(error);

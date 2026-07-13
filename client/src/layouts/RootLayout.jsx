@@ -1,7 +1,22 @@
 import { Outlet, Link, useLocation } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
-import { LogOut, Activity, LayoutDashboard, Users, Calendar, FileText, Menu, Search, User, HelpCircle, Shield, FlaskConical, Clock } from 'lucide-react';
+import {
+  LogOut,
+  LayoutDashboard,
+  Users,
+  Calendar,
+  FileText,
+  Menu,
+  Search,
+  User,
+  FlaskConical,
+  Clock,
+  Lock,
+  X,
+} from 'lucide-react';
 import { useState, useEffect } from 'react';
+import api from '../api/axios';
+import { toast } from 'sonner';
 import { cn } from '../utils/cn';
 import CommandPalette from '../components/CommandPalette';
 import NotificationCenter from '../components/NotificationCenter';
@@ -18,13 +33,40 @@ const RootLayout = () => {
   const [scrolled, setScrolled] = useState(false);
   const [currentTime, setCurrentTime] = useState(new Date());
 
+  const [tempPassword, setTempPassword] = useState('');
+  const [newPassword, setNewPassword] = useState('');
+  const [confirmPassword, setConfirmPassword] = useState('');
+  const [updating, setUpdating] = useState(false);
+
+  const handleForcePasswordChange = async (e) => {
+    e.preventDefault();
+    if (newPassword.length < 8) {
+      toast.error('New password must be at least 8 characters long');
+      return;
+    }
+    if (newPassword !== confirmPassword) {
+      toast.error('Passwords do not match');
+      return;
+    }
+    try {
+      setUpdating(true);
+      await api.patch('/auth/update-password', {
+        oldPassword: tempPassword,
+        newPassword,
+      });
+      toast.success('Password changed successfully. Workspace unlocked.');
+      window.location.reload();
+    } catch (err) {
+      toast.error(err.response?.data?.message || 'Failed to update password');
+    } finally {
+      setUpdating(false);
+    }
+  };
+
   useEffect(() => {
     const handleScroll = () => setScrolled(window.scrollY > 10);
     window.addEventListener('scroll', handleScroll);
-
-    // Live clock update
     const clockInterval = setInterval(() => setCurrentTime(new Date()), 1000);
-
     return () => {
       window.removeEventListener('scroll', handleScroll);
       clearInterval(clockInterval);
@@ -61,153 +103,258 @@ const RootLayout = () => {
 
   const navItems = user ? navigation[user.role] || [] : [];
 
+  if (user && user.mustChangePassword) {
+    return (
+      <div className="fixed inset-0 z-[9999] flex items-center justify-center bg-background p-4">
+        <div className="card w-full max-w-md space-y-6 p-8 animate-scale-in">
+          <div className="text-center">
+            <div className="mx-auto mb-4 flex h-11 w-11 items-center justify-center rounded-2xl border border-slate-200 bg-slate-50 text-slate-700">
+              <Lock className="h-4.5 w-4.5" />
+            </div>
+            <h1 className="text-[18px] font-medium tracking-tight text-slate-900">
+              Reset your password
+            </h1>
+            <p className="mt-1.5 text-[13px] font-normal text-slate-500">
+              This is your first login. Set a new password to secure your account.
+            </p>
+          </div>
+
+          <form onSubmit={handleForcePasswordChange} className="space-y-4">
+            <div>
+              <label className="label">Temporary password</label>
+              <input
+                type="password"
+                required
+                className="input"
+                placeholder="Initial password from admin"
+                value={tempPassword}
+                onChange={(e) => setTempPassword(e.target.value)}
+              />
+            </div>
+            <div>
+              <label className="label">New password</label>
+              <input
+                type="password"
+                required
+                className="input"
+                placeholder="Minimum 8 characters"
+                value={newPassword}
+                onChange={(e) => setNewPassword(e.target.value)}
+              />
+            </div>
+            <div>
+              <label className="label">Confirm new password</label>
+              <input
+                type="password"
+                required
+                className="input"
+                placeholder="Repeat new password"
+                value={confirmPassword}
+                onChange={(e) => setConfirmPassword(e.target.value)}
+              />
+            </div>
+
+            <button
+              type="submit"
+              disabled={updating}
+              className="btn btn-primary w-full py-2.5 mt-1"
+            >
+              {updating ? 'Updating…' : 'Update & unlock workspace'}
+            </button>
+          </form>
+
+          <button
+            type="button"
+            onClick={logout}
+            className="btn btn-ghost w-full py-2 text-slate-500"
+          >
+            Cancel & log out
+          </button>
+        </div>
+      </div>
+    );
+  }
+
   return (
-    <div className="min-h-screen bg-background flex flex-col font-sans transition-colors duration-300">
+    <div className="flex min-h-screen flex-col bg-background font-sans">
       <CommandPalette />
       <OfflineBanner />
       <OnboardingTour />
       <KeyboardShortcutsHelp />
 
-      {/* Header */}
-      <header className={cn(
-        "sticky top-0 z-30 transition-all duration-300 border-b",
-        scrolled ? "bg-white/80 backdrop-blur-lg border-slate-200 shadow-sm" : "bg-white border-transparent"
-      )}>
-        <div className="flex items-center justify-between px-4 sm:px-6 lg:px-8 h-16">
-          <div className="flex items-center gap-4">
+      {/* Top bar */}
+      <header
+        className={cn(
+          'sticky top-0 z-30 border-b transition-all duration-300',
+          scrolled
+            ? 'border-slate-200/80 bg-white/85 shadow-sm backdrop-blur-xl'
+            : 'border-transparent bg-white/70 backdrop-blur-md'
+        )}
+      >
+        <div className="flex h-14 items-center justify-between px-4 sm:px-6 lg:px-8">
+          <div className="flex items-center gap-3">
             <button
+              type="button"
               onClick={() => setIsSidebarOpen(!isSidebarOpen)}
-              className="p-2 -ml-2 mr-2 text-slate-500 hover:text-primary-600 hover:bg-primary-50 rounded-lg lg:hidden transition-colors"
+              className="rounded-xl p-2 text-slate-500 transition-colors hover:bg-slate-100 hover:text-slate-900 lg:hidden"
+              aria-label="Toggle menu"
             >
-              <Menu className="w-5 h-5" />
+              <Menu className="h-5 w-5" />
             </button>
-            <div className="flex items-center gap-2 lg:hidden">
-              <div className="flex h-8 w-8 items-center justify-center rounded-[10px] bg-slate-900">
-                <Activity className="w-4 h-4 text-white" strokeWidth={2.25} />
-              </div>
-              <span className="text-[17px] font-semibold tracking-tight text-slate-900">
-                Clinova
-              </span>
-            </div>
 
-            {/* Breadcrumb / Current Date for Large screens */}
-            <div className="hidden lg:flex items-center gap-2 text-xs font-semibold text-slate-500">
-              <Clock className="w-3.5 h-3.5 text-primary-500" />
-              <span>{currentTime.toLocaleDateString(undefined, { weekday: 'short', month: 'short', day: 'numeric' })}</span>
-              <span className="text-slate-300">•</span>
-              <span className="font-mono text-slate-600">
-                {currentTime.toLocaleTimeString(undefined, { hour: '2-digit', minute: '2-digit', second: '2-digit' })}
+            <Link to="/" className="brand-mark text-slate-900 lg:hidden">
+              Clinova
+            </Link>
+
+            <div className="hidden items-center gap-2 text-[12px] font-normal text-slate-500 lg:flex">
+              <Clock className="h-3.5 w-3.5 text-slate-400" />
+              <span>
+                {currentTime.toLocaleDateString(undefined, {
+                  weekday: 'short',
+                  month: 'short',
+                  day: 'numeric',
+                })}
+              </span>
+              <span className="text-slate-300">·</span>
+              <span className="font-mono text-slate-600 tabular-nums">
+                {currentTime.toLocaleTimeString(undefined, {
+                  hour: '2-digit',
+                  minute: '2-digit',
+                  second: '2-digit',
+                })}
               </span>
             </div>
           </div>
 
-          <div className="flex items-center gap-3 sm:gap-5">
-            {/* Search Trigger */}
+          <div className="flex items-center gap-2 sm:gap-3">
             <button
               id="search-trigger"
-              onClick={() => document.dispatchEvent(new KeyboardEvent('keydown', { key: 'k', metaKey: true }))}
-              className="hidden sm:flex items-center gap-2 text-sm text-slate-400 bg-slate-50 hover:bg-slate-100 px-3 py-1.5 rounded-lg border border-slate-200 transition-colors"
+              type="button"
+              onClick={() =>
+                document.dispatchEvent(
+                  new KeyboardEvent('keydown', { key: 'k', metaKey: true })
+                )
+              }
+              className="hidden items-center gap-2 rounded-full border border-slate-200 bg-slate-50 px-3 py-1.5 text-[12.5px] font-normal text-slate-400 transition-colors hover:bg-slate-100 sm:flex"
             >
-              <Search className="w-4 h-4" />
-              <span>Search...</span>
-              <kbd className="hidden sm:inline-block px-1.5 py-0.5 text-[10px] font-mono bg-white rounded shadow-sm border border-slate-200 text-slate-500">⌘K</kbd>
+              <Search className="h-3.5 w-3.5" />
+              <span>Search</span>
+              <kbd className="rounded-md border border-slate-200 bg-white px-1.5 py-0.5 font-mono text-[10px] text-slate-500">
+                ⌘K
+              </kbd>
             </button>
 
-            {/* Mobile Search Icon */}
             <button
-              className="sm:hidden p-2 text-slate-400 hover:text-primary-600 hover:bg-slate-50 rounded-lg"
-              onClick={() => document.dispatchEvent(new KeyboardEvent('keydown', { key: 'k', metaKey: true }))}
+              type="button"
+              className="rounded-xl p-2 text-slate-400 transition-colors hover:bg-slate-100 hover:text-slate-700 sm:hidden"
+              onClick={() =>
+                document.dispatchEvent(
+                  new KeyboardEvent('keydown', { key: 'k', metaKey: true })
+                )
+              }
             >
-              <Search className="w-5 h-5" />
+              <Search className="h-5 w-5" />
             </button>
 
             <NotificationCenter />
 
-            <div className="w-px h-6 bg-slate-200 hidden sm:block mx-1"></div>
+            <div className="mx-0.5 hidden h-5 w-px bg-slate-200 sm:block" />
 
-            <div className="flex items-center gap-3">
-              <div className="hidden sm:flex flex-col items-end">
-                <span className="text-sm font-semibold text-slate-700 leading-none">{user?.name}</span>
-                <span className="text-[10px] font-bold text-primary-600 uppercase tracking-widest mt-1 bg-primary-50 px-1.5 py-0.5 rounded border border-primary-100">
-                  {user?.role.replace('_', ' ')}
+            <div className="flex items-center gap-2.5">
+              <div className="hidden flex-col items-end sm:flex">
+                <span className="text-[13px] font-medium leading-none text-slate-800">
+                  {user?.name}
+                </span>
+                <span className="mt-1 rounded-full bg-slate-100 px-2 py-0.5 text-[10px] font-medium uppercase tracking-wider text-slate-500">
+                  {user?.role?.replace('_', ' ')}
                 </span>
               </div>
-              <div className="w-9 h-9 bg-gradient-to-br from-primary-100 to-primary-200 rounded-full flex items-center justify-center text-primary-700 font-bold shadow-inner ring-2 ring-white">
+              <div className="flex h-8 w-8 items-center justify-center rounded-full bg-slate-900 text-[12px] font-medium text-white ring-2 ring-white">
                 {user?.name?.charAt(0).toUpperCase()}
               </div>
             </div>
 
             <button
+              type="button"
               onClick={logout}
-              className="p-2 text-slate-400 hover:text-red-500 hover:bg-red-50 rounded-lg transition-all duration-200"
-              title="Logout"
+              className="rounded-xl p-2 text-slate-400 transition-all hover:bg-rose-50 hover:text-rose-600"
+              title="Log out"
             >
-              <LogOut className="w-5 h-5" />
+              <LogOut className="h-4.5 w-4.5" />
             </button>
           </div>
         </div>
       </header>
 
-      <div className="flex flex-1 overflow-hidden relative">
-        {/* Sidebar overlay for mobile */}
+      <div className="relative flex flex-1 overflow-hidden">
         {isSidebarOpen && (
           <div
-            className="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-40 lg:hidden transition-opacity"
+            className="fixed inset-0 z-40 bg-slate-950/50 backdrop-blur-sm transition-opacity lg:hidden"
             onClick={() => setIsSidebarOpen(false)}
           />
         )}
 
-        {/* Dark Sidebar */}
-        <aside className={cn(
-          "fixed inset-y-0 left-0 z-50 w-72 bg-sidebar flex flex-col transition-transform duration-300 ease-in-out shadow-2xl lg:shadow-none lg:translate-x-0 lg:static",
-          isSidebarOpen ? "translate-x-0" : "-translate-x-full"
-        )}>
-          {/* Sidebar Header (Logo) */}
-          <div className="h-16 flex items-center px-6 border-b border-white/10 hidden lg:flex">
-            <div className="flex items-center gap-3">
-              <div className="relative flex h-8 w-8 items-center justify-center rounded-[10px] bg-white/10 ring-1 ring-white/10">
-                <Activity className="w-4 h-4 text-white" strokeWidth={2.25} />
-              </div>
-              <span className="text-[17px] font-semibold text-white tracking-tight">
-                Clinova
-              </span>
-            </div>
+        {/* Sidebar */}
+        <aside
+          className={cn(
+            'fixed inset-y-0 left-0 z-50 flex w-64 flex-col bg-sidebar shadow-premium-lg transition-transform duration-300 ease-out lg:static lg:translate-x-0 lg:shadow-none',
+            isSidebarOpen ? 'translate-x-0' : '-translate-x-full'
+          )}
+        >
+          <div className="hidden h-14 items-center justify-between border-b border-white/8 px-6 lg:flex">
+            <Link to="/" className="brand-mark text-white">
+              Clinova
+            </Link>
           </div>
 
-          {/* Navigation */}
-          <nav className="flex-1 overflow-y-auto py-6 px-4 space-y-1.5 custom-scrollbar">
-            <div className="text-xs font-semibold text-slate-400 uppercase tracking-wider mb-4 px-3">
+          {/* Mobile drawer header */}
+          <div className="flex h-14 items-center justify-between border-b border-white/8 px-5 lg:hidden">
+            <span className="brand-mark text-white">Clinova</span>
+            <button
+              type="button"
+              onClick={() => setIsSidebarOpen(false)}
+              className="rounded-lg p-1.5 text-white/60 hover:bg-white/10 hover:text-white"
+            >
+              <X className="h-4 w-4" />
+            </button>
+          </div>
+
+          <nav className="custom-scrollbar flex-1 space-y-0.5 overflow-y-auto px-3 py-5">
+            <p className="mb-3 px-3 text-[10px] font-medium uppercase tracking-[0.14em] text-white/35">
               Menu
-            </div>
+            </p>
             {navItems.map((item, index) => {
               const Icon = item.icon;
               const isActive = location.pathname === item.href;
               return (
                 <motion.div
                   key={item.name}
-                  initial={{ opacity: 0, x: -8 }}
+                  initial={{ opacity: 0, x: -6 }}
                   animate={{ opacity: 1, x: 0 }}
-                  transition={{ delay: index * 0.04, duration: 0.3, ease: 'easeOut' }}
+                  transition={{ delay: index * 0.03, duration: 0.25, ease: 'easeOut' }}
                 >
                   <Link
                     to={item.href}
                     onClick={() => setIsSidebarOpen(false)}
                     className={cn(
-                      "flex items-center justify-between px-3 py-2.5 rounded-xl transition-all duration-200 group",
+                      'group flex items-center justify-between rounded-xl px-3 py-2.5 transition-all duration-200',
                       isActive
-                        ? "bg-white/10 text-white shadow-inner"
-                        : "text-slate-400 hover:bg-white/5 hover:text-white"
+                        ? 'bg-white/10 text-white'
+                        : 'text-white/55 hover:bg-white/5 hover:text-white'
                     )}
                   >
                     <div className="flex items-center gap-3">
-                      <Icon className={cn(
-                        "w-5 h-5 transition-colors duration-200",
-                        isActive ? "text-primary-400" : "text-slate-400 group-hover:text-primary-400"
-                      )} />
-                      <span className="font-medium text-sm">{item.name}</span>
+                      <Icon
+                        className={cn(
+                          'h-[18px] w-[18px] transition-colors',
+                          isActive ? 'text-white' : 'text-white/40 group-hover:text-white/70'
+                        )}
+                        strokeWidth={1.75}
+                      />
+                      <span className="text-[13px] font-normal">{item.name}</span>
                     </div>
                     {isActive && (
-                      <div className="w-1.5 h-1.5 rounded-full bg-primary-400 shadow-[0_0_8px_rgba(56,189,248,0.8)] animate-pulse" />
+                      <span className="h-1.5 w-1.5 rounded-full bg-white shadow-[0_0_8px_rgba(255,255,255,0.6)]" />
                     )}
                   </Link>
                 </motion.div>
@@ -215,30 +362,35 @@ const RootLayout = () => {
             })}
           </nav>
 
-          {/* Sidebar Footer */}
-          <div className="p-4 border-t border-white/10">
-            <div className="bg-white/5 rounded-xl p-4 flex items-center justify-between">
-              <div className="flex items-center gap-3">
-                <div className="w-2 h-2 rounded-full bg-emerald-400 shadow-[0_0_8px_rgba(52,211,153,0.8)] animate-pulse" />
-                <span className="text-xs font-medium text-slate-300">System Online</span>
+          <div className="border-t border-white/8 p-4">
+            <div className="flex items-center justify-between rounded-xl bg-white/5 px-3.5 py-3">
+              <div className="flex items-center gap-2.5">
+                <span className="h-1.5 w-1.5 animate-pulse rounded-full bg-emerald-400 shadow-[0_0_8px_rgba(52,211,153,0.7)]" />
+                <span className="text-[11.5px] font-normal text-white/55">System online</span>
               </div>
-              <span className="text-[10px] font-bold text-slate-500 hover:text-white cursor-pointer transition-colors" onClick={() => document.dispatchEvent(new KeyboardEvent('keydown', { key: '?' }))}>
-                Shortcuts (?)
-              </span>
+              <button
+                type="button"
+                className="text-[10px] font-medium text-white/35 transition-colors hover:text-white"
+                onClick={() =>
+                  document.dispatchEvent(new KeyboardEvent('keydown', { key: '?' }))
+                }
+              >
+                Shortcuts
+              </button>
             </div>
           </div>
         </aside>
 
-        {/* Main content */}
+        {/* Main */}
         <main className="flex-1 overflow-y-auto bg-gradient-mesh">
           <AnimatePresence mode="wait">
             <motion.div
               key={location.pathname}
-              initial={{ opacity: 0, y: 15 }}
+              initial={{ opacity: 0, y: 10 }}
               animate={{ opacity: 1, y: 0 }}
-              exit={{ opacity: 0, y: -15 }}
-              transition={{ duration: 0.3, ease: [0.16, 1, 0.3, 1] }}
-              className="max-w-7xl mx-auto p-4 sm:p-6 lg:p-8"
+              exit={{ opacity: 0, y: -8 }}
+              transition={{ duration: 0.28, ease: [0.16, 1, 0.3, 1] }}
+              className="mx-auto max-w-content p-4 sm:p-6 lg:p-8"
             >
               <ErrorBoundary>
                 <Outlet />

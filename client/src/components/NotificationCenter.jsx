@@ -28,19 +28,21 @@ export default function NotificationCenter() {
   return (
     <div className="relative" ref={dropdownRef}>
       <button
+        id="notification-bell"
+        type="button"
         onClick={handleToggle}
-        className="relative p-2 text-slate-400 hover:text-primary-600 hover:bg-slate-50 rounded-lg transition-colors"
+        className="relative rounded-xl p-2 text-slate-400 transition-colors hover:bg-slate-100 hover:text-slate-700"
       >
-        <Bell className="w-5 h-5" />
+        <Bell className="h-4.5 w-4.5" />
         {unreadCount > 0 && (
-          <span className="absolute top-1.5 right-1.5 w-2 h-2 bg-red-500 rounded-full ring-2 ring-white animate-pulse" />
+          <span className="absolute right-1.5 top-1.5 h-2 w-2 animate-pulse rounded-full bg-rose-500 ring-2 ring-white" />
         )}
       </button>
 
       {isOpen && (
-        <div className="absolute right-0 mt-2 w-80 sm:w-96 bg-white rounded-2xl shadow-xl border border-slate-200 overflow-hidden z-50 animate-scale-in origin-top-right">
-          <div className="px-4 py-3 border-b border-slate-100 flex items-center justify-between bg-slate-50/50">
-            <h3 className="font-semibold text-slate-900">Notifications</h3>
+        <div className="absolute right-0 z-50 mt-2 w-80 origin-top-right animate-scale-in overflow-hidden rounded-2xl border border-slate-200/80 bg-white shadow-premium-lg sm:w-96">
+          <div className="flex items-center justify-between border-b border-slate-100 bg-slate-50/60 px-4 py-3">
+            <h3 className="text-[13.5px] font-medium text-slate-900">Notifications</h3>
             {notifications.length > 0 && (
               <button
                 onClick={clearNotifications}

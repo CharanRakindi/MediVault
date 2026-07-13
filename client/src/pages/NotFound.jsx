@@ -3,39 +3,40 @@ import { ArrowLeft, Home } from 'lucide-react';
 
 export default function NotFound() {
   return (
-    <div className="min-h-screen bg-[#F8FAFC] flex flex-col items-center justify-center p-6 text-center select-none font-sans relative overflow-hidden">
-      {/* Decorative backdrop elements */}
-      <div className="absolute top-1/4 left-1/4 w-96 h-96 bg-primary-100 rounded-full blur-3xl opacity-60"></div>
-      <div className="absolute bottom-1/4 right-1/4 w-96 h-96 bg-indigo-100 rounded-full blur-3xl opacity-60"></div>
+    <div className="relative flex min-h-screen flex-col items-center justify-center overflow-hidden bg-background px-6 text-center">
+      <div className="pointer-events-none absolute inset-0 bg-gradient-mesh" />
 
-      <div className="relative z-10 max-w-md w-full">
-        {/* Large 404 Card */}
-        <div className="bg-white/80 backdrop-blur-md rounded-3xl p-8 shadow-2xl border border-slate-100">
-          <div className="text-8xl font-black text-slate-200 tracking-tighter mb-4 animate-bounce">
-            404
-          </div>
-          <h1 className="text-2xl font-extrabold text-slate-900 mb-2">Page Not Found</h1>
-          <p className="text-sm font-medium text-slate-500 mb-8 leading-relaxed">
-            The page you are looking for doesn't exist, has been moved, or you don't have permission to access it.
+      <div className="relative z-10 w-full max-w-md">
+        <div className="card p-8 sm:p-10">
+          <p className="text-[11px] font-medium uppercase tracking-[0.2em] text-slate-400">
+            Error 404
+          </p>
+          <h1 className="mt-3 text-[28px] font-medium tracking-tight text-slate-900">
+            Page not found
+          </h1>
+          <p className="mt-2 text-[14px] font-normal leading-relaxed text-slate-500">
+            The page you&apos;re looking for doesn&apos;t exist, was moved, or you don&apos;t have access.
           </p>
 
-          <div className="flex flex-col sm:flex-row gap-3 justify-center">
-            <Link
-              to="/"
-              className="flex items-center justify-center gap-2 bg-slate-900 text-white hover:bg-slate-800 px-5 py-3 rounded-2xl font-bold shadow-md hover:shadow-lg transition-all text-sm active:scale-95"
-            >
-              <Home className="w-4 h-4" />
-              Go Home
+          <div className="mt-8 flex flex-col justify-center gap-2.5 sm:flex-row">
+            <Link to="/" className="btn btn-primary px-5 py-2.5">
+              <Home className="h-3.5 w-3.5" />
+              Go home
             </Link>
             <button
+              type="button"
               onClick={() => window.history.back()}
-              className="flex items-center justify-center gap-2 border border-slate-200 hover:bg-slate-50 px-5 py-3 rounded-2xl font-bold text-slate-700 transition-all text-sm active:scale-95"
+              className="btn btn-secondary px-5 py-2.5"
             >
-              <ArrowLeft className="w-4 h-4" />
-              Go Back
+              <ArrowLeft className="h-3.5 w-3.5" />
+              Go back
             </button>
           </div>
         </div>
+
+        <p className="mt-6 text-[12.5px] font-normal text-slate-400">
+          Clinova
+        </p>
       </div>
     </div>
   );

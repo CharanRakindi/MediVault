@@ -1,13 +1,15 @@
 import LabReport from '../models/LabReport.js';
 import User from '../models/User.js';
+import MedicalRecord from '../models/MedicalRecord.js';
 import { logAction } from '../utils/auditLogger.js';
+import { sendToRole } from '../services/socketService.js';
 
 // @desc    Order a lab test
 // @route   POST /api/v1/lab-reports
 // @access  Private/Doctor
 export const orderLabTest = async (req, res, next) => {
   try {
-    const { patientId, testName, testType, referenceRange } = req.body;
+    const { patientId, testName, testType, referenceRange, priority, notes, appointmentId } = req.body;
 
     if (!patientId || !testName) {
       return res.status(400).json({ success: false, message: 'Patient ID and test name are required' });
@@ -22,9 +24,28 @@ export const orderLabTest = async (req, res, next) => {
       patient: patientId,
       doctor: req.user._id,
       testName,
-      testType,
+      testType: testType || 'Diagnostic',
       referenceRange,
-      status: 'pending',
+      priority: priority || 'Normal',
+      notes,
+      appointment: appointmentId,
+      status: 'ordered',
+    });
+
+    // Automatically create a corresponding MedicalRecord to update the patient timeline
+    await MedicalRecord.create({
+      patient: patientId,
+      doctor: req.user._id,
+      chiefComplaint: `Laboratory Request: ${testName}`,
+      clinicalNotes: `Priority: ${priority || 'Normal'}. Notes: ${notes || 'No specific instructions added.'}`,
+      visitDate: new Date(),
+      status: 'active'
+    });
+
+    // Notify assigned Lab Technicians using Socket.io
+    sendToRole('lab_technician', 'notification', {
+      message: `Dr. ${req.user.name} ordered a new ${priority || 'Normal'} priority test: ${testName} for ${patientExists.name}`,
+      timestamp: new Date()
     });
 
     const populated = await LabReport.findById(labReport._id)

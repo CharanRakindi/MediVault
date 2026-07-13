@@ -26,7 +26,7 @@ A premium, full-featured **Electronic Health Record (EHR) and Medical Record Man
 - **Real-Time Notifications** — Socket.io powered notification system with live updates
 - **Interactive Calendar** — Full-featured calendar view (react-big-calendar) for appointments
 - **Command Palette** — `⌘K` / `Ctrl+K` quick navigation (cmdk)
-- **Dark Mode** — System-aware theme switching via next-themes
+- **Premium landing** — Responsive marketing site with About, Services, Doctors, and Blog sections
 - **File Upload System** — Drag-and-drop uploads with Cloudinary integration
 
 ---

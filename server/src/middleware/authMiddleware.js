@@ -16,6 +16,20 @@ export const authenticate = async (req, res, next) => {
       if (!req.user || !req.user.isActive) {
         return res.status(401).json({ success: false, message: 'Not authorized, user not found or inactive' });
       }
+
+      // Force password reset restriction on first login
+      if (req.user.mustChangePassword) {
+        const allowedPaths = ['/api/v1/auth/update-password', '/api/v1/auth/logout', '/api/v1/auth/me'];
+        const currentPath = req.baseUrl + req.path;
+        if (!allowedPaths.includes(currentPath)) {
+          return res.status(403).json({ 
+            success: false, 
+            message: 'First login password change required', 
+            mustChangePassword: true 
+          });
+        }
+      }
+
       next();
     } catch (error) {
       return res.status(401).json({ success: false, message: 'Not authorized, token failed' });

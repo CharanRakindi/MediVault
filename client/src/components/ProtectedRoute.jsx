@@ -7,8 +7,11 @@ const ProtectedRoute = () => {
 
   if (loading) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-gray-50">
-        <Loader2 className="w-8 h-8 animate-spin text-primary-600" />
+      <div className="flex min-h-screen items-center justify-center bg-background">
+        <div className="flex flex-col items-center gap-3">
+          <Loader2 className="h-7 w-7 animate-spin text-slate-400" />
+          <p className="text-[13px] font-normal text-slate-400">Loading Clinova…</p>
+        </div>
       </div>
     );
   }

@@ -30,6 +30,18 @@ const labReportSchema = new mongoose.Schema(
       enum: ['ordered', 'sample_collected', 'processing', 'completed', 'reviewed', 'cancelled'],
       default: 'ordered',
     },
+    priority: {
+      type: String,
+      enum: ['Normal', 'Urgent'],
+      default: 'Normal',
+    },
+    notes: {
+      type: String,
+    },
+    appointment: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: 'Appointment',
+    },
     resultSummary: String,
     referenceRange: String,
     attachments: [

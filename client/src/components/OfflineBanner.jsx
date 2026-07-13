@@ -26,15 +26,15 @@ export default function OfflineBanner() {
   if (!isOffline || dismissed) return null;
 
   return (
-    <div className="fixed bottom-6 right-6 z-[100] max-w-sm w-full bg-slate-900 text-white rounded-2xl shadow-2xl border border-slate-800 p-4 animate-slide-in-right">
+    <div className="fixed bottom-6 right-6 z-[100] w-full max-w-sm animate-slide-in-right rounded-2xl border border-slate-800 bg-slate-950 p-4 text-white shadow-premium-lg">
       <div className="flex items-start gap-3">
-        <div className="bg-rose-500/10 p-2 rounded-xl text-rose-500 shrink-0">
-          <WifiOff className="w-5 h-5" />
+        <div className="shrink-0 rounded-xl bg-rose-500/10 p-2 text-rose-400">
+          <WifiOff className="h-4.5 w-4.5" />
         </div>
         <div className="flex-1">
-          <h4 className="text-sm font-bold">Offline Connection</h4>
-          <p className="text-xs font-medium text-slate-400 mt-1">
-            You are currently offline. Clinova will sync your updates once connectivity is restored.
+          <h4 className="text-[13.5px] font-medium">You&apos;re offline</h4>
+          <p className="mt-1 text-[12px] font-normal text-white/55">
+            Clinova will sync your updates once connectivity is restored.
           </p>
         </div>
         <button 

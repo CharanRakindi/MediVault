@@ -7,111 +7,95 @@ export default function Profile() {
 
   if (!user) return null;
 
+  const fields = [
+    { icon: User, label: 'Full name', value: user.name },
+    { icon: Mail, label: 'Email address', value: user.email },
+    {
+      icon: Shield,
+      label: 'Authorized role',
+      value: (
+        <span className="badge badge-neutral mt-0.5 uppercase tracking-wider">
+          {user.role.replace('_', ' ')}
+        </span>
+      ),
+    },
+    { icon: Phone, label: 'Phone', value: user.phone || 'Not configured' },
+    {
+      icon: Calendar,
+      label: 'Date of birth',
+      value: user.dateOfBirth
+        ? format(new Date(user.dateOfBirth), 'MMMM dd, yyyy')
+        : 'Not configured',
+    },
+    {
+      icon: Activity,
+      label: 'Account status',
+      value: user.isActive === false ? 'Inactive' : 'Active',
+    },
+    {
+      icon: MapPin,
+      label: 'Address',
+      value: user.address || 'Not configured',
+    },
+  ];
+
   return (
-    <div className="space-y-6 pb-8 animate-fade-in">
-      <div className="bg-white p-6 rounded-2xl shadow-sm border border-slate-100">
-        <h1 className="text-2xl font-extrabold text-slate-900 tracking-tight">Account Profile</h1>
-        <p className="text-sm font-medium text-slate-500 mt-1">Review your personal information and access authorization role settings</p>
+    <div className="animate-fade-in space-y-6 pb-8">
+      <div className="page-header">
+        <div>
+          <h1 className="page-title">Account profile</h1>
+          <p className="page-subtitle">
+            Your personal information and access role settings
+          </p>
+        </div>
       </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-        {/* Main Details */}
-        <div className="lg:col-span-2 space-y-6">
-          <div className="bg-white rounded-2xl p-6 shadow-sm border border-slate-100 space-y-6">
-            <h3 className="text-lg font-bold text-slate-900 pb-3 border-b border-slate-100">Personal Details</h3>
-            
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-              <div className="flex items-center gap-3">
-                <div className="p-2.5 bg-slate-50 rounded-xl text-slate-400">
-                  <User className="w-5 h-5" />
-                </div>
-                <div>
-                  <p className="text-xs font-bold text-slate-400 uppercase tracking-wider">Full Name</p>
-                  <p className="text-sm font-semibold text-slate-800 mt-0.5">{user.name}</p>
-                </div>
-              </div>
+      <div className="grid grid-cols-1 gap-6 lg:grid-cols-3">
+        <div className="space-y-6 lg:col-span-2">
+          <div className="card space-y-6 p-6">
+            <h3 className="section-title border-b border-slate-100 pb-3">
+              Personal details
+            </h3>
 
-              <div className="flex items-center gap-3">
-                <div className="p-2.5 bg-slate-50 rounded-xl text-slate-400">
-                  <Mail className="w-5 h-5" />
+            <div className="grid grid-cols-1 gap-5 md:grid-cols-2">
+              {fields.map(({ icon: Icon, label, value }) => (
+                <div key={label} className="flex items-center gap-3">
+                  <div className="rounded-xl border border-slate-100 bg-slate-50 p-2.5 text-slate-400">
+                    <Icon className="h-4.5 w-4.5" strokeWidth={1.75} />
+                  </div>
+                  <div>
+                    <p className="text-[11px] font-medium uppercase tracking-wider text-slate-400">
+                      {label}
+                    </p>
+                    {typeof value === 'string' ? (
+                      <p className="mt-0.5 text-[13.5px] font-medium text-slate-800">
+                        {value}
+                      </p>
+                    ) : (
+                      value
+                    )}
+                  </div>
                 </div>
-                <div>
-                  <p className="text-xs font-bold text-slate-400 uppercase tracking-wider">Email Address</p>
-                  <p className="text-sm font-semibold text-slate-800 mt-0.5">{user.email}</p>
-                </div>
-              </div>
-
-              <div className="flex items-center gap-3">
-                <div className="p-2.5 bg-slate-50 rounded-xl text-slate-400">
-                  <Shield className="w-5 h-5" />
-                </div>
-                <div>
-                  <p className="text-xs font-bold text-slate-400 uppercase tracking-wider">Authorized Role</p>
-                  <span className="inline-block mt-0.5 text-xs font-extrabold uppercase text-primary-600 tracking-wider bg-primary-50 px-2 py-0.5 rounded border border-primary-100">
-                    {user.role.replace('_', ' ')}
-                  </span>
-                </div>
-              </div>
-
-              <div className="flex items-center gap-3">
-                <div className="p-2.5 bg-slate-50 rounded-xl text-slate-400">
-                  <Phone className="w-5 h-5" />
-                </div>
-                <div>
-                  <p className="text-xs font-bold text-slate-400 uppercase tracking-wider">Phone</p>
-                  <p className="text-sm font-semibold text-slate-800 mt-0.5">{user.phone || 'Not configured'}</p>
-                </div>
-              </div>
-
-              <div className="flex items-center gap-3">
-                <div className="p-2.5 bg-slate-50 rounded-xl text-slate-400">
-                  <Calendar className="w-5 h-5" />
-                </div>
-                <div>
-                  <p className="text-xs font-bold text-slate-400 uppercase tracking-wider">Date of Birth</p>
-                  <p className="text-sm font-semibold text-slate-800 mt-0.5">
-                    {user.dateOfBirth ? format(new Date(user.dateOfBirth), 'MMMM dd, yyyy') : 'Not configured'}
-                  </p>
-                </div>
-              </div>
-
-              <div className="flex items-center gap-3">
-                <div className="p-2.5 bg-slate-50 rounded-xl text-slate-400">
-                  <Activity className="w-5 h-5" />
-                </div>
-                <div>
-                  <p className="text-xs font-bold text-slate-400 uppercase tracking-wider">Gender</p>
-                  <p className="text-sm font-semibold text-slate-800 mt-0.5 capitalize">{user.gender || 'Not specified'}</p>
-                </div>
-              </div>
+              ))}
             </div>
           </div>
         </div>
 
-        {/* Status panel */}
-        <div className="space-y-6">
-          <div className="bg-white rounded-2xl p-6 shadow-sm border border-slate-100 flex flex-col items-center text-center">
-            <div className="w-24 h-24 bg-gradient-to-br from-primary-400 to-indigo-600 rounded-full flex items-center justify-center text-white text-3xl font-extrabold shadow-lg mb-4">
-              {user.name.charAt(0).toUpperCase()}
-            </div>
-            <h2 className="text-xl font-extrabold text-slate-900">{user.name}</h2>
-            <p className="text-sm font-semibold text-slate-400 mt-0.5 capitalize">{user.role.replace('_', ' ')}</p>
-
-            <div className="w-full border-t border-slate-100 my-5 pt-5 space-y-4 text-left">
-              <div className="flex justify-between text-xs font-bold">
-                <span className="text-slate-400">STATUS</span>
-                <span className="text-emerald-500 uppercase">ACTIVE</span>
-              </div>
-              <div className="flex justify-between text-xs font-bold">
-                <span className="text-slate-400">SECURITY METHOD</span>
-                <span className="text-slate-800">JWT HTTPONLY</span>
-              </div>
-              <div className="flex justify-between text-xs font-bold">
-                <span className="text-slate-400">OFFLINE SYNC</span>
-                <span className="text-slate-800">PWA CAPABLE</span>
-              </div>
-            </div>
+        <div className="card flex flex-col items-center p-6 text-center">
+          <div className="mb-4 flex h-16 w-16 items-center justify-center rounded-full bg-slate-900 text-[22px] font-medium text-white shadow-premium">
+            {user.name?.charAt(0).toUpperCase()}
           </div>
+          <h3 className="text-[16px] font-medium text-slate-900">{user.name}</h3>
+          <p className="mt-1 text-[13px] font-normal text-slate-500">{user.email}</p>
+          <span className="badge badge-neutral mt-3 uppercase tracking-wider">
+            {user.role.replace('_', ' ')}
+          </span>
+          <p className="mt-6 text-[12px] font-normal leading-relaxed text-slate-400">
+            Member since{' '}
+            {user.createdAt
+              ? format(new Date(user.createdAt), 'MMM yyyy')
+              : '—'}
+          </p>
         </div>
       </div>
     </div>

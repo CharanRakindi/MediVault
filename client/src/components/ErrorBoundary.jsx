@@ -12,26 +12,29 @@ export default class ErrorBoundary extends React.Component {
   }
 
   componentDidCatch(error, errorInfo) {
-    console.error("ErrorBoundary caught an error:", error, errorInfo);
+    console.error('ErrorBoundary caught an error:', error, errorInfo);
   }
 
   render() {
     if (this.state.hasError) {
       return (
-        <div className="min-h-[60vh] flex flex-col items-center justify-center p-6 text-center">
-          <div className="w-16 h-16 bg-rose-50 text-rose-500 rounded-2xl flex items-center justify-center mb-6 shadow-inner">
-            <AlertOctagon className="w-8 h-8" />
+        <div className="flex min-h-[60vh] flex-col items-center justify-center p-6 text-center">
+          <div className="mb-5 flex h-14 w-14 items-center justify-center rounded-2xl border border-rose-100 bg-rose-50 text-rose-500">
+            <AlertOctagon className="h-6 w-6" />
           </div>
-          <h2 className="text-xl font-extrabold text-slate-900 mb-2">Something went wrong</h2>
-          <p className="text-sm font-medium text-slate-500 max-w-md mb-8">
-            An unexpected error occurred while loading this view. Our engineering team has been notified.
+          <h2 className="mb-2 text-[18px] font-medium tracking-tight text-slate-900">
+            Something went wrong
+          </h2>
+          <p className="mb-7 max-w-md text-[13.5px] font-normal text-slate-500">
+            An unexpected error occurred while loading this view. Try reloading the page.
           </p>
           <button
+            type="button"
             onClick={() => window.location.reload()}
-            className="flex items-center gap-2 bg-slate-900 text-white px-5 py-2.5 rounded-xl font-bold shadow-md hover:shadow-lg transition-all text-sm active:scale-95"
+            className="btn btn-primary"
           >
-            <RotateCcw className="w-4 h-4" />
-            Reload Portal
+            <RotateCcw className="h-3.5 w-3.5" />
+            Reload workspace
           </button>
         </div>
       );

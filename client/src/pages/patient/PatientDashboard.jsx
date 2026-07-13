@@ -8,6 +8,7 @@ import { useState } from 'react';
 import { format } from 'date-fns';
 import { useAuth } from '../../contexts/AuthContext';
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
+import { formatDoctorName } from '../../utils/format';
 
 const PatientDashboard = () => {
   const { user } = useAuth();
@@ -81,94 +82,89 @@ const PatientDashboard = () => {
     .reverse() || [];
 
   return (
-    <div className="space-y-8 pb-8 animate-fade-in">
-      {/* Welcome Banner */}
-      <div className="relative rounded-3xl bg-gradient-to-r from-primary-600 to-primary-700 p-8 shadow-sm overflow-hidden text-white flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
-        <div className="absolute right-0 top-0 -mr-16 -mt-16 w-64 h-64 rounded-full bg-white opacity-10 blur-3xl"></div>
-        <div className="absolute right-32 bottom-0 -mb-16 w-48 h-48 rounded-full bg-primary-400 opacity-20 blur-2xl"></div>
-        
-        <div className="relative z-10">
-          <h1 className="text-3xl font-extrabold tracking-tight mb-2 animate-fade-in-up">
-            Hello, {user?.name.split(' ')[0]} ☀️
+    <div className="space-y-6 pb-8 animate-fade-in">
+      <div className="page-header">
+        <div>
+          <h1 className="page-title">
+            Welcome, {user?.name?.split(' ')[0]}
           </h1>
-          <p className="text-primary-50 font-medium max-w-xl">
-            Welcome to your personal health portal. You have {stats?.upcomingAppointments || 0} upcoming appointments scheduled.
+          <p className="page-subtitle">
+            Your health record and scheduled consultations
           </p>
         </div>
 
-        <Link to="/patient/appointments" className="relative z-10 bg-white hover:bg-slate-50 text-primary-700 px-5 py-2.5 rounded-xl font-bold shadow-sm transition-all text-sm">
-          Book Appointment
+        <Link to="/patient/appointments" className="btn btn-primary">
+          Book consultation
         </Link>
       </div>
 
       {/* Grid overview */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-5">
         <StatCard 
           index={0}
-          title="Upcoming Appointments" 
+          title="Upcoming Visits" 
           value={stats?.upcomingAppointments || 0} 
           icon={Calendar} 
-          className="border-t-4 border-t-primary-500"
-          description="Scheduled visits"
+          contextText={appointments?.[0] ? `Next: ${formatDoctorName(appointments[0].doctor?.name)} on ${format(new Date(appointments[0].appointmentDate), 'MMM dd')}` : 'No upcoming visits scheduled'}
+          actionText="Book consultation"
+          actionHref="/patient/appointments"
         />
         <StatCard 
           index={1}
           title="Medical Records" 
           value={stats?.totalRecords || 0} 
           icon={FileText} 
-          className="border-t-4 border-t-primary-500"
-          description="Total active records"
+          contextText="HIPAA-protected electronic records"
+          actionText="Open medical records"
+          actionHref="/patient/records"
         />
-        <div className="glass-card p-6 flex flex-col justify-between border-t-4 border-t-primary-500 relative overflow-hidden group">
-          <div className="flex items-center justify-between">
-            <h3 className="text-sm font-semibold text-slate-500 uppercase tracking-wider">Health Status</h3>
-            <div className="p-2.5 rounded-xl bg-primary-50 text-primary-600 border border-primary-100 shadow-sm">
-              <HeartPulse className="w-5 h-5" />
-            </div>
-          </div>
-          <div className="mt-6">
-            <p className="text-2xl font-extrabold text-slate-800 tracking-tight">Good</p>
-            <p className="mt-2 text-sm text-slate-500 font-medium">Keep up the healthy habits!</p>
-          </div>
-        </div>
+        <StatCard 
+          index={2}
+          title="Health Status" 
+          value="Stable" 
+          icon={HeartPulse} 
+          contextText="All recent vitals are within normal range"
+          actionText="Review vitals trends"
+          actionHref="#vitals-trend"
+        />
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         {/* Left Side: Profile Summary & Quick list */}
         <div className="lg:col-span-1 space-y-6">
           {/* Profile Card */}
-          <div className="bg-white p-5 rounded-3xl border border-slate-100 shadow-sm space-y-4">
-            <h3 className="text-lg font-bold text-slate-900 pb-3 border-b border-slate-100">Health Profile</h3>
+          <div id="patient-health-profile" className="card p-5 space-y-4">
+            <h3 className="text-[14.5px] font-semibold text-slate-800 pb-3 border-b border-slate-100">Health Profile</h3>
             
-            <div className="space-y-3.5 text-sm font-semibold">
+            <div className="space-y-3.5 text-[13px] font-medium">
               <div className="flex justify-between">
                 <span className="text-slate-400">Blood Group</span>
-                <span className="text-red-500">{profile?.bloodGroup || 'O+'}</span>
+                <span className="font-semibold text-red-600">{profile?.bloodGroup || 'O+'}</span>
               </div>
               <div className="flex justify-between">
-                <span className="text-slate-400">Emergency contact</span>
-                <span className="text-slate-700">{profile?.emergencyContact?.name || 'Mary Doe'} ({profile?.emergencyContact?.relationship || 'Spouse'})</span>
+                <span className="text-slate-400">Emergency Contact</span>
+                <span className="font-semibold text-slate-700">{profile?.emergencyContact?.name || 'Mary Doe'} ({profile?.emergencyContact?.relationship || 'Spouse'})</span>
               </div>
               <div className="flex justify-between">
-                <span className="text-slate-400">Insurance provider</span>
-                <span className="text-slate-700">{profile?.insuranceProvider || 'MetLife Health'}</span>
+                <span className="text-slate-400">Insurance Provider</span>
+                <span className="font-semibold text-slate-700">{profile?.insuranceProvider || 'MetLife Health'}</span>
               </div>
               <div className="flex justify-between">
-                <span className="text-slate-400">Insurance number</span>
-                <span className="text-slate-700">{profile?.insuranceNumber || 'MET-8932'}</span>
+                <span className="text-slate-400">Policy Identifier</span>
+                <span className="font-semibold text-slate-700 font-mono">{profile?.insuranceNumber || 'MET-8932'}</span>
               </div>
             </div>
           </div>
 
           {/* Active Medical Alerts */}
-          <div className="bg-red-50/50 p-5 rounded-3xl border border-red-100 space-y-4">
-            <h3 className="text-lg font-bold text-red-700 flex items-center gap-2">
-              <ShieldAlert className="w-5 h-5" />
-              Medical Alerts
+          <div className="border border-red-200 bg-red-50/40 p-5 rounded-xl space-y-3">
+            <h3 className="text-[14px] font-semibold text-red-800 flex items-center gap-2">
+              <ShieldAlert className="w-4 h-4 text-red-600" />
+              Critical Medical Alerts
             </h3>
-            <div className="text-sm font-medium text-red-800">
-              <ul className="list-disc pl-5 space-y-1.5 font-bold">
-                <li>Allergy: Penicillin (Severe Reaction)</li>
+            <div className="text-[12.5px] font-medium text-red-800">
+              <ul className="list-disc pl-5 space-y-1.5 font-semibold">
+                <li>Allergy: Penicillin (Severe Anaphylaxis risk)</li>
                 <li>Allergy: Peanuts (Moderate Reaction)</li>
               </ul>
             </div>
@@ -179,17 +175,17 @@ const PatientDashboard = () => {
         <div className="lg:col-span-2 space-y-6">
           {/* Vitals Charts */}
           {vitalsChartData.length > 0 && (
-            <div className="bg-white border border-slate-100 p-5 rounded-3xl shadow-sm">
-              <h3 className="text-lg font-bold text-slate-900 mb-4">Vitals Trends</h3>
-              <div className="h-[230px] w-full">
+            <div id="vitals-trend" className="card p-5">
+              <h3 className="text-[14.5px] font-semibold text-slate-800 mb-4">Vitals Trends</h3>
+              <div className="h-[210px] w-full">
                 <ResponsiveContainer width="100%" height="100%">
                   <LineChart data={vitalsChartData} margin={{ top: 10, right: 10, left: -20, bottom: 0 }}>
                     <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#f1f5f9" />
                     <XAxis dataKey="date" axisLine={false} tickLine={false} tick={{ fill: '#94a3b8', fontSize: 11 }} />
                     <YAxis axisLine={false} tickLine={false} tick={{ fill: '#94a3b8', fontSize: 11 }} />
-                    <Tooltip contentStyle={{borderRadius: '12px', border: '1px solid #e2e8f0'}} />
-                    <Line type="monotone" dataKey="pulse" name="Pulse (bpm)" stroke="#ef4444" strokeWidth={3} activeDot={{ r: 6 }} />
-                    <Line type="monotone" dataKey="systolic" name="Systolic (mmHg)" stroke="#3b82f6" strokeWidth={3} />
+                    <Tooltip contentStyle={{ borderRadius: '8px', border: '1px solid #e2e8f0', fontSize: '12px' }} />
+                    <Line type="monotone" dataKey="pulse" name="Pulse (bpm)" stroke="#ef4444" strokeWidth={2} activeDot={{ r: 5 }} />
+                    <Line type="monotone" dataKey="systolic" name="Systolic (mmHg)" stroke="#2563EB" strokeWidth={2} />
                   </LineChart>
                 </ResponsiveContainer>
               </div>
@@ -197,28 +193,28 @@ const PatientDashboard = () => {
           )}
 
           {/* Active Lists Tabs */}
-          <div className="bg-white border border-slate-100 rounded-3xl shadow-sm overflow-hidden">
-            <div className="flex border-b border-slate-100 p-2 gap-1 bg-slate-50/50">
+          <div className="card overflow-hidden">
+            <div className="flex border-b border-slate-100 p-1.5 gap-1 bg-slate-50/50">
               <button 
                 onClick={() => setActiveTab('overview')} 
-                className={`flex-1 py-2 px-3 text-xs font-bold rounded-xl transition-all ${
-                  activeTab === 'overview' ? 'bg-white shadow-sm text-primary-600' : 'text-slate-500 hover:text-slate-800'
+                className={`flex-1 py-1.5 px-3 text-[12px] font-semibold rounded-lg transition-all ${
+                  activeTab === 'overview' ? 'bg-white shadow-sm text-slate-900 border border-slate-200/40' : 'text-slate-500 hover:text-slate-800'
                 }`}
               >
                 Appointments
               </button>
               <button 
                 onClick={() => setActiveTab('prescriptions')} 
-                className={`flex-1 py-2 px-3 text-xs font-bold rounded-xl transition-all ${
-                  activeTab === 'prescriptions' ? 'bg-white shadow-sm text-primary-600' : 'text-slate-500 hover:text-slate-800'
+                className={`flex-1 py-1.5 px-3 text-[12px] font-semibold rounded-lg transition-all ${
+                  activeTab === 'prescriptions' ? 'bg-white shadow-sm text-slate-900 border border-slate-200/40' : 'text-slate-500 hover:text-slate-800'
                 }`}
               >
                 Prescriptions
               </button>
               <button 
                 onClick={() => setActiveTab('reports')} 
-                className={`flex-1 py-2 px-3 text-xs font-bold rounded-xl transition-all ${
-                  activeTab === 'reports' ? 'bg-white shadow-sm text-primary-600' : 'text-slate-500 hover:text-slate-800'
+                className={`flex-1 py-1.5 px-3 text-[12px] font-semibold rounded-lg transition-all ${
+                  activeTab === 'reports' ? 'bg-white shadow-sm text-slate-900 border border-slate-200/40' : 'text-slate-500 hover:text-slate-800'
                 }`}
               >
                 Lab Reports
@@ -227,19 +223,19 @@ const PatientDashboard = () => {
 
             <div className="p-5">
               {activeTab === 'overview' && (
-                <div className="space-y-4">
+                <div className="space-y-3">
                   {(!appointments || appointments.length === 0) ? (
-                    <div className="text-center text-slate-400 font-semibold py-8">
+                    <div className="text-center text-slate-400 font-medium py-8 text-[12.5px]">
                       No upcoming appointments scheduled
                     </div>
                   ) : (
                     appointments.map(apt => (
-                      <div key={apt._id} className="flex justify-between items-center p-3 rounded-xl bg-slate-50/50 border border-slate-100">
+                      <div key={apt._id} className="flex justify-between items-center p-3.5 rounded-xl bg-slate-50/50 border border-slate-200/60">
                         <div>
-                          <p className="font-extrabold text-sm text-slate-900">Dr. {apt.doctor?.name}</p>
-                          <p className="text-xs font-semibold text-slate-400 mt-0.5">{format(new Date(apt.appointmentDate), 'MMM dd, yyyy')} • {apt.timeSlot}</p>
+                          <p className="font-semibold text-[13px] text-slate-900">{formatDoctorName(apt.doctor?.name)}</p>
+                          <p className="text-[11.5px] font-medium text-slate-400 mt-0.5">{format(new Date(apt.appointmentDate), 'MMM dd, yyyy')} • {apt.timeSlot}</p>
                         </div>
-                        <span className="px-2.5 py-0.5 rounded-lg text-xs font-bold uppercase tracking-wider border border-primary-100 bg-primary-50 text-primary-700">
+                        <span className="px-2.5 py-0.5 rounded-md text-[10px] font-semibold uppercase tracking-wider border border-primary-100 bg-primary-50 text-primary-700">
                           {apt.status}
                         </span>
                       </div>
@@ -249,27 +245,27 @@ const PatientDashboard = () => {
               )}
 
               {activeTab === 'prescriptions' && (
-                <div className="space-y-4">
+                <div className="space-y-3">
                   {(!prescriptions || prescriptions.length === 0) ? (
-                    <div className="text-center text-slate-400 font-semibold py-8">
+                    <div className="text-center text-slate-400 font-medium py-8 text-[12.5px]">
                       No active prescriptions logged
                     </div>
                   ) : (
                     prescriptions.map(p => (
-                      <div key={p._id} className="p-4 rounded-xl bg-slate-50/50 border border-slate-100 space-y-2">
+                      <div key={p._id} className="p-4 rounded-xl bg-slate-50/50 border border-slate-200/60 space-y-2">
                         <div className="flex justify-between items-start">
                           <div>
-                            <p className="font-extrabold text-sm text-slate-900 flex items-center gap-1">
-                              <Pill className="w-4 h-4 text-primary-500" />
+                            <p className="font-semibold text-[13.5px] text-slate-900 flex items-center gap-1.5">
+                              <Pill className="w-3.5 h-3.5 text-primary-600" />
                               {p.medicines?.[0]?.medicineName} {p.medicines?.length > 1 && `+${p.medicines.length - 1} more`}
                             </p>
-                            <p className="text-xs font-semibold text-slate-400">Prescribed by Dr. {p.doctor?.name}</p>
+                            <p className="text-[11.5px] font-medium text-slate-400 mt-0.5">Prescribed by {formatDoctorName(p.doctor?.name)}</p>
                           </div>
-                          <span className="px-2 py-0.5 rounded text-[10px] font-bold bg-primary-50 text-primary-600 border border-primary-100">
+                          <span className="px-2 py-0.5 rounded text-[10px] font-semibold bg-primary-50 text-primary-700 border border-primary-100">
                             {p.status}
                           </span>
                         </div>
-                        <p className="text-xs text-slate-500">{p.instructions}</p>
+                        <p className="text-[12px] font-medium text-slate-500 leading-normal">{p.instructions}</p>
                       </div>
                     ))
                   )}
@@ -277,23 +273,23 @@ const PatientDashboard = () => {
               )}
 
               {activeTab === 'reports' && (
-                <div className="space-y-4">
+                <div className="space-y-3">
                   {(!labReports || labReports.length === 0) ? (
-                    <div className="text-center text-slate-400 font-semibold py-8">
+                    <div className="text-center text-slate-400 font-medium py-8 text-[12.5px]">
                       No lab reports uploaded
                     </div>
                   ) : (
                     labReports.map(report => (
-                      <div key={report._id} className="flex justify-between items-center p-3 rounded-xl bg-slate-50/50 border border-slate-100">
+                      <div key={report._id} className="flex justify-between items-center p-3.5 rounded-xl bg-slate-50/50 border border-slate-200/60">
                         <div>
-                          <p className="font-extrabold text-sm text-slate-900 flex items-center gap-1">
-                            <FileCheck className="w-4 h-4 text-primary-500" />
+                          <p className="font-semibold text-[13.5px] text-slate-900 flex items-center gap-1.5">
+                            <FileCheck className="w-3.5 h-3.5 text-primary-600" />
                             {report.testName}
                           </p>
-                          <p className="text-xs font-semibold text-slate-400 mt-0.5">Completed: {report.resultDate ? format(new Date(report.resultDate), 'MMM dd, yyyy') : 'Pending'}</p>
+                          <p className="text-[11.5px] font-medium text-slate-400 mt-0.5">Completed: {report.resultDate ? format(new Date(report.resultDate), 'MMM dd, yyyy') : 'Pending'}</p>
                         </div>
-                        <span className={`px-2.5 py-0.5 rounded-lg text-xs font-bold uppercase tracking-wider ${
-                          report.status === 'completed' ? 'bg-primary-50 text-primary-700 border-primary-100' : 'bg-slate-100 text-slate-700'
+                        <span className={`px-2.5 py-0.5 rounded-md text-[10px] font-semibold uppercase tracking-wider border ${
+                          report.status === 'completed' ? 'bg-emerald-50 text-emerald-700 border-emerald-100' : 'bg-slate-100 text-slate-700 border-slate-200'
                         }`}>
                           {report.status}
                         </span>

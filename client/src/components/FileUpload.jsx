@@ -4,7 +4,11 @@ import { toast } from 'sonner';
 import api from '../api/axios';
 import { cn } from '../utils/cn';
 
-export default function FileUpload({ onUploadSuccess, label = "Upload File", accept = "image/*, .pdf, .doc, .docx" }) {
+export default function FileUpload({
+  onUploadSuccess,
+  label = 'Upload file',
+  accept = 'image/*, .pdf, .doc, .docx',
+}) {
   const [isDragging, setIsDragging] = useState(false);
   const [isUploading, setIsUploading] = useState(false);
   const [file, setFile] = useState(null);
@@ -24,21 +28,20 @@ export default function FileUpload({ onUploadSuccess, label = "Upload File", acc
   const handleDrop = (e) => {
     e.preventDefault();
     setIsDragging(false);
-    
-    if (e.dataTransfer.files && e.dataTransfer.files.length > 0) {
+    if (e.dataTransfer.files?.length > 0) {
       handleFileSelection(e.dataTransfer.files[0]);
     }
   };
 
   const handleFileInput = (e) => {
-    if (e.target.files && e.target.files.length > 0) {
+    if (e.target.files?.length > 0) {
       handleFileSelection(e.target.files[0]);
     }
   };
 
   const handleFileSelection = (selectedFile) => {
     setFile(selectedFile);
-    setUploadedUrl(''); // Reset if new file selected
+    setUploadedUrl('');
   };
 
   const clearFile = () => {
@@ -55,25 +58,18 @@ export default function FileUpload({ onUploadSuccess, label = "Upload File", acc
     formData.append('file', file);
 
     try {
-      // Assuming axios is configured with baseURL and withCredentials
       const res = await api.post('/upload', formData, {
-        headers: {
-          'Content-Type': 'multipart/form-data',
-        },
+        headers: { 'Content-Type': 'multipart/form-data' },
       });
 
       const data = res.data.data;
-      // Cloudinary returns an absolute URL (https://...), local returns relative (/uploads/...)
       const fileUrl = data.url.startsWith('http')
         ? data.url
         : `${import.meta.env.VITE_API_URL?.replace('/api/v1', '') || 'http://localhost:5001'}${data.url}`;
-      
+
       setUploadedUrl(fileUrl);
-      toast.success('File uploaded successfully!');
-      
-      if (onUploadSuccess) {
-        onUploadSuccess(fileUrl, data);
-      }
+      toast.success('File uploaded successfully');
+      onUploadSuccess?.(fileUrl, data);
     } catch (error) {
       console.error('Upload error:', error);
       toast.error(error.response?.data?.message || 'Failed to upload file');
@@ -84,82 +80,90 @@ export default function FileUpload({ onUploadSuccess, label = "Upload File", acc
 
   return (
     <div className="w-full">
-      <p className="text-sm font-bold text-slate-700 mb-2">{label}</p>
-      
+      <p className="label mb-2">{label}</p>
+
       {!file ? (
-        <div 
+        <div
           className={cn(
-            "border-2 border-dashed rounded-xl p-8 flex flex-col items-center justify-center transition-all cursor-pointer",
-            isDragging 
-              ? "border-primary-500 bg-primary-50" 
-              : "border-slate-300 bg-slate-50 hover:bg-slate-100"
+            'flex cursor-pointer flex-col items-center justify-center rounded-2xl border border-dashed p-8 transition-all',
+            isDragging
+              ? 'border-slate-400 bg-slate-100'
+              : 'border-slate-200 bg-slate-50/80 hover:border-slate-300 hover:bg-slate-50'
           )}
           onDragOver={handleDragOver}
           onDragLeave={handleDragLeave}
           onDrop={handleDrop}
           onClick={() => fileInputRef.current?.click()}
         >
-          <UploadCloud className={cn("w-10 h-10 mb-3 transition-colors", isDragging ? "text-primary-600" : "text-slate-400")} />
-          <p className="text-sm font-bold text-slate-700 text-center mb-1">
+          <UploadCloud
+            className={cn(
+              'mb-3 h-9 w-9 transition-colors',
+              isDragging ? 'text-slate-700' : 'text-slate-400'
+            )}
+            strokeWidth={1.5}
+          />
+          <p className="mb-1 text-center text-[13px] font-medium text-slate-700">
             Drag & drop your file here
           </p>
-          <p className="text-xs font-medium text-slate-500 text-center">
-            or click to browse from your computer
+          <p className="text-center text-[12px] font-normal text-slate-400">
+            or click to browse · PDF, images, documents
           </p>
-          <input 
-            type="file" 
-            ref={fileInputRef} 
-            onChange={handleFileInput} 
-            className="hidden" 
+          <input
+            type="file"
+            ref={fileInputRef}
+            onChange={handleFileInput}
+            className="hidden"
             accept={accept}
           />
         </div>
       ) : (
-        <div className="border border-slate-200 rounded-xl p-4 bg-white shadow-sm">
-          <div className="flex items-center justify-between mb-4">
+        <div className="rounded-2xl border border-slate-200 bg-white p-4 shadow-sm">
+          <div className="mb-4 flex items-center justify-between">
             <div className="flex items-center gap-3 overflow-hidden">
-              <div className="w-10 h-10 rounded-lg bg-indigo-50 flex items-center justify-center shrink-0">
-                <FileIcon className="w-5 h-5 text-indigo-600" />
+              <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl border border-slate-100 bg-slate-50">
+                <FileIcon className="h-4.5 w-4.5 text-slate-500" strokeWidth={1.75} />
               </div>
               <div className="overflow-hidden">
-                <p className="text-sm font-bold text-slate-900 truncate">{file.name}</p>
-                <p className="text-xs font-medium text-slate-500">
+                <p className="truncate text-[13px] font-medium text-slate-900">{file.name}</p>
+                <p className="text-[12px] font-normal text-slate-400">
                   {(file.size / 1024 / 1024).toFixed(2)} MB
                 </p>
               </div>
             </div>
-            
+
             {!uploadedUrl && !isUploading && (
-              <button 
+              <button
+                type="button"
                 onClick={clearFile}
-                className="p-1.5 text-slate-400 hover:text-rose-500 hover:bg-rose-50 rounded-lg transition-colors"
+                className="rounded-lg p-1.5 text-slate-400 transition-colors hover:bg-rose-50 hover:text-rose-500"
                 title="Remove file"
               >
-                <X className="w-4 h-4" />
+                <X className="h-4 w-4" />
               </button>
             )}
           </div>
-          
+
           {uploadedUrl ? (
-            <div className="flex items-center justify-center gap-2 py-2 bg-emerald-50 text-emerald-700 rounded-lg font-bold text-sm">
-              <CheckCircle className="w-4 h-4" />
-              Upload Complete
+            <div className="flex items-center justify-center gap-2 rounded-xl bg-emerald-50 py-2.5 text-[13px] font-medium text-emerald-700">
+              <CheckCircle className="h-4 w-4" />
+              Upload complete
             </div>
           ) : (
             <button
+              type="button"
               onClick={uploadFile}
               disabled={isUploading}
-              className="w-full flex items-center justify-center gap-2 bg-primary-600 hover:bg-primary-700 text-white py-2.5 rounded-lg font-bold transition-all disabled:opacity-70"
+              className="btn btn-primary w-full py-2.5"
             >
               {isUploading ? (
                 <>
-                  <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin"></div>
-                  Uploading...
+                  <span className="h-4 w-4 animate-spin rounded-full border-2 border-white/30 border-t-white" />
+                  Uploading…
                 </>
               ) : (
                 <>
-                  <UploadCloud className="w-4 h-4" />
-                  Upload File
+                  <UploadCloud className="h-4 w-4" />
+                  Upload file
                 </>
               )}
             </button>

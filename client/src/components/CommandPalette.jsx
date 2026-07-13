@@ -1,23 +1,24 @@
 import { useEffect, useState } from 'react';
 import { Command } from 'cmdk';
 import { useNavigate } from 'react-router-dom';
-import { Search, Users, Calendar, FileText, Settings, X } from 'lucide-react';
+import { Search, Users, Calendar, FileText, Settings, X, LayoutDashboard } from 'lucide-react';
 import { useAuth } from '../contexts/AuthContext';
+
+const itemClass =
+  'flex cursor-pointer items-center rounded-xl px-3 py-2.5 text-[13px] font-normal text-slate-700 aria-selected:bg-slate-50 aria-selected:text-slate-900';
 
 export default function CommandPalette() {
   const [open, setOpen] = useState(false);
   const navigate = useNavigate();
   const { user } = useAuth();
 
-  // Toggle the menu when ⌘K is pressed
   useEffect(() => {
     const down = (e) => {
       if (e.key === 'k' && (e.metaKey || e.ctrlKey)) {
         e.preventDefault();
-        setOpen((open) => !open);
+        setOpen((v) => !v);
       }
     };
-
     document.addEventListener('keydown', down);
     return () => document.removeEventListener('keydown', down);
   }, []);
@@ -30,109 +31,159 @@ export default function CommandPalette() {
   if (!open) return null;
 
   return (
-    <div className="fixed inset-0 z-[100] flex items-start justify-center pt-[15vh] px-4 animate-fade-in">
-      {/* Backdrop */}
-      <div 
-        className="absolute inset-0 bg-slate-900/40 backdrop-blur-sm"
+    <div className="fixed inset-0 z-[100] flex animate-fade-in items-start justify-center px-4 pt-[15vh]">
+      <div
+        className="absolute inset-0 bg-slate-950/45 backdrop-blur-sm"
         onClick={() => setOpen(false)}
       />
-      
-      {/* Command Palette */}
-      <div className="relative w-full max-w-2xl bg-white rounded-2xl shadow-2xl overflow-hidden border border-slate-200 animate-scale-in">
+
+      <div className="relative w-full max-w-xl animate-scale-in overflow-hidden rounded-2xl border border-slate-200/80 bg-white shadow-premium-lg">
         <Command>
-          <div className="flex items-center border-b border-slate-200 px-4">
-            <Search className="w-5 h-5 text-slate-400 mr-3 shrink-0" />
-            <Command.Input 
+          <div className="flex items-center border-b border-slate-100 px-4">
+            <Search className="mr-3 h-4 w-4 shrink-0 text-slate-400" />
+            <Command.Input
               autoFocus
-              placeholder="Type a command or search..." 
-              className="flex-1 h-14 bg-transparent outline-none text-slate-900 placeholder:text-slate-400 text-sm font-medium"
+              placeholder="Search pages and actions…"
+              className="h-12 flex-1 bg-transparent text-[14px] font-normal text-slate-900 outline-none placeholder:text-slate-400"
             />
-            <button 
+            <button
+              type="button"
               onClick={() => setOpen(false)}
-              className="p-1 rounded-md hover:bg-slate-100 text-slate-400"
+              className="rounded-lg p-1.5 text-slate-400 transition-colors hover:bg-slate-100 hover:text-slate-600"
             >
-              <X className="w-4 h-4" />
+              <X className="h-4 w-4" />
             </button>
           </div>
 
-          <Command.List className="max-h-[300px] overflow-y-auto p-2 scrollbar-thin">
-            <Command.Empty className="py-6 text-center text-sm text-slate-500">
+          <Command.List className="max-h-[300px] overflow-y-auto p-2">
+            <Command.Empty className="py-8 text-center text-[13px] text-slate-500">
               No results found.
             </Command.Empty>
 
-            <Command.Group heading="Quick Links" className="text-xs font-bold text-slate-400 uppercase tracking-wider mb-2 px-2 py-1">
+            <Command.Group
+              heading="Quick links"
+              className="mb-1 px-2 py-1 text-[10px] font-medium uppercase tracking-[0.12em] text-slate-400"
+            >
               {user?.role === 'admin' && (
                 <>
-                  <Command.Item 
+                  <Command.Item
                     onSelect={() => runCommand(() => navigate('/admin/dashboard'))}
-                    className="flex items-center px-3 py-2.5 text-sm font-medium text-slate-700 rounded-xl cursor-pointer aria-selected:bg-primary-50:bg-primary-900/20 aria-selected:text-primary-700:text-primary-300"
+                    className={itemClass}
                   >
-                    <Settings className="w-4 h-4 mr-3 text-slate-400" /> Admin Dashboard
+                    <LayoutDashboard className="mr-3 h-4 w-4 text-slate-400" />
+                    Admin dashboard
                   </Command.Item>
-                  <Command.Item 
+                  <Command.Item
                     onSelect={() => runCommand(() => navigate('/admin/users'))}
-                    className="flex items-center px-3 py-2.5 text-sm font-medium text-slate-700 rounded-xl cursor-pointer aria-selected:bg-primary-50:bg-primary-900/20 aria-selected:text-primary-700:text-primary-300"
+                    className={itemClass}
                   >
-                    <Users className="w-4 h-4 mr-3 text-slate-400" /> Manage Users
+                    <Users className="mr-3 h-4 w-4 text-slate-400" />
+                    Manage users
+                  </Command.Item>
+                  <Command.Item
+                    onSelect={() => runCommand(() => navigate('/admin/audit-logs'))}
+                    className={itemClass}
+                  >
+                    <FileText className="mr-3 h-4 w-4 text-slate-400" />
+                    Audit logs
                   </Command.Item>
                 </>
               )}
 
               {user?.role === 'doctor' && (
                 <>
-                  <Command.Item 
+                  <Command.Item
                     onSelect={() => runCommand(() => navigate('/doctor/dashboard'))}
-                    className="flex items-center px-3 py-2.5 text-sm font-medium text-slate-700 rounded-xl cursor-pointer aria-selected:bg-primary-50:bg-primary-900/20 aria-selected:text-primary-700:text-primary-300"
+                    className={itemClass}
                   >
-                    <Settings className="w-4 h-4 mr-3 text-slate-400" /> My Dashboard
+                    <LayoutDashboard className="mr-3 h-4 w-4 text-slate-400" />
+                    Dashboard
                   </Command.Item>
-                  <Command.Item 
+                  <Command.Item
                     onSelect={() => runCommand(() => navigate('/doctor/patients'))}
-                    className="flex items-center px-3 py-2.5 text-sm font-medium text-slate-700 rounded-xl cursor-pointer aria-selected:bg-primary-50:bg-primary-900/20 aria-selected:text-primary-700:text-primary-300"
+                    className={itemClass}
                   >
-                    <Users className="w-4 h-4 mr-3 text-slate-400" /> My Patients
+                    <Users className="mr-3 h-4 w-4 text-slate-400" />
+                    Patients
                   </Command.Item>
                 </>
               )}
 
               {user?.role === 'patient' && (
                 <>
-                  <Command.Item 
+                  <Command.Item
                     onSelect={() => runCommand(() => navigate('/patient/dashboard'))}
-                    className="flex items-center px-3 py-2.5 text-sm font-medium text-slate-700 rounded-xl cursor-pointer aria-selected:bg-primary-50:bg-primary-900/20 aria-selected:text-primary-700:text-primary-300"
+                    className={itemClass}
                   >
-                    <Settings className="w-4 h-4 mr-3 text-slate-400" /> My Dashboard
+                    <LayoutDashboard className="mr-3 h-4 w-4 text-slate-400" />
+                    Dashboard
                   </Command.Item>
-                  <Command.Item 
+                  <Command.Item
                     onSelect={() => runCommand(() => navigate('/patient/appointments'))}
-                    className="flex items-center px-3 py-2.5 text-sm font-medium text-slate-700 rounded-xl cursor-pointer aria-selected:bg-primary-50:bg-primary-900/20 aria-selected:text-primary-700:text-primary-300"
+                    className={itemClass}
                   >
-                    <Calendar className="w-4 h-4 mr-3 text-slate-400" /> Appointments
+                    <Calendar className="mr-3 h-4 w-4 text-slate-400" />
+                    Appointments
                   </Command.Item>
-                  <Command.Item 
+                  <Command.Item
                     onSelect={() => runCommand(() => navigate('/patient/records'))}
-                    className="flex items-center px-3 py-2.5 text-sm font-medium text-slate-700 rounded-xl cursor-pointer aria-selected:bg-primary-50:bg-primary-900/20 aria-selected:text-primary-700:text-primary-300"
+                    className={itemClass}
                   >
-                    <FileText className="w-4 h-4 mr-3 text-slate-400" /> Medical Records
+                    <FileText className="mr-3 h-4 w-4 text-slate-400" />
+                    Medical records
                   </Command.Item>
                 </>
               )}
+
+              {(user?.role === 'receptionist' || user?.role === 'lab_technician') && (
+                <Command.Item
+                  onSelect={() =>
+                    runCommand(() =>
+                      navigate(
+                        user.role === 'receptionist'
+                          ? '/receptionist/dashboard'
+                          : '/labtech/dashboard'
+                      )
+                    )
+                  }
+                  className={itemClass}
+                >
+                  <LayoutDashboard className="mr-3 h-4 w-4 text-slate-400" />
+                  Dashboard
+                </Command.Item>
+              )}
+
+              <Command.Item
+                onSelect={() => runCommand(() => navigate('/profile'))}
+                className={itemClass}
+              >
+                <Settings className="mr-3 h-4 w-4 text-slate-400" />
+                Profile & settings
+              </Command.Item>
             </Command.Group>
           </Command.List>
-          
-          <div className="border-t border-slate-100 px-4 py-3 flex items-center justify-between">
-            <div className="flex gap-2">
-              <span className="px-2 py-1 bg-slate-100 rounded text-xs font-mono text-slate-500">↑</span>
-              <span className="px-2 py-1 bg-slate-100 rounded text-xs font-mono text-slate-500">↓</span>
-              <span className="text-xs text-slate-400 ml-1 flex items-center">to navigate</span>
+
+          <div className="flex items-center justify-between border-t border-slate-100 px-4 py-3">
+            <div className="flex items-center gap-1.5 text-[11px] text-slate-400">
+              <kbd className="rounded border border-slate-200 bg-slate-50 px-1.5 py-0.5 font-mono text-slate-500">
+                ↑
+              </kbd>
+              <kbd className="rounded border border-slate-200 bg-slate-50 px-1.5 py-0.5 font-mono text-slate-500">
+                ↓
+              </kbd>
+              <span className="ml-1">navigate</span>
             </div>
-            <div className="flex gap-2">
-              <span className="px-2 py-1 bg-slate-100 rounded text-xs font-mono text-slate-500">Enter</span>
-              <span className="text-xs text-slate-400 ml-1 flex items-center">to select</span>
+            <div className="flex items-center gap-1.5 text-[11px] text-slate-400">
+              <kbd className="rounded border border-slate-200 bg-slate-50 px-1.5 py-0.5 font-mono text-slate-500">
+                Enter
+              </kbd>
+              <span className="ml-1">select</span>
             </div>
-            <div className="flex gap-2">
-              <span className="px-2 py-1 bg-slate-100 rounded text-xs font-mono text-slate-500">esc</span>
-              <span className="text-xs text-slate-400 ml-1 flex items-center">to close</span>
+            <div className="flex items-center gap-1.5 text-[11px] text-slate-400">
+              <kbd className="rounded border border-slate-200 bg-slate-50 px-1.5 py-0.5 font-mono text-slate-500">
+                esc
+              </kbd>
+              <span className="ml-1">close</span>
             </div>
           </div>
         </Command>

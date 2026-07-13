@@ -53,6 +53,17 @@ const userSchema = new mongoose.Schema(
     lastLogin: {
       type: Date,
     },
+    mustChangePassword: {
+      type: Boolean,
+      default: false,
+    },
+    employeeId: {
+      type: String,
+    },
+    department: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: 'Department',
+    },
     passwordChangedAt: {
       type: Date,
     },

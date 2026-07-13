@@ -4,14 +4,25 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import * as z from 'zod';
 import { useAuth } from '../contexts/AuthContext';
 import { useNavigate, Link } from 'react-router-dom';
-import { Activity, Loader2, ArrowRight } from 'lucide-react';
+import { Loader2, ArrowRight } from 'lucide-react';
 import { toast } from 'sonner';
 import { motion } from 'framer-motion';
+
+const HERO_BG =
+  'https://cdn.sceneai.art/Hero%20Section%20Video/802fa01f-44ef-4ab4-ac73-62015fe06eef.png';
 
 const loginSchema = z.object({
   email: z.string().email('Invalid email address'),
   password: z.string().min(1, 'Password is required'),
 });
+
+const roleHome = (role) => {
+  if (role === 'admin') return '/admin/dashboard';
+  if (role === 'doctor') return '/doctor/dashboard';
+  if (role === 'receptionist') return '/receptionist/dashboard';
+  if (role === 'lab_technician') return '/labtech/dashboard';
+  return '/patient/dashboard';
+};
 
 const Login = () => {
   const { login } = useAuth();
@@ -26,13 +37,8 @@ const Login = () => {
     try {
       setIsLoading(true);
       const res = await login(data.email, data.password);
-      toast.success('Welcome back!');
-      
-      const role = res.data.role;
-      if (role === 'admin') navigate('/admin/dashboard');
-      else if (role === 'doctor') navigate('/doctor/dashboard');
-      else navigate('/patient/dashboard');
-      
+      toast.success('Welcome back');
+      navigate(roleHome(res.data.role));
     } catch (error) {
       toast.error(error.response?.data?.message || 'Failed to login');
     } finally {
@@ -41,136 +47,125 @@ const Login = () => {
   };
 
   return (
-    <div className="min-h-screen flex bg-gradient-mesh transition-colors duration-300">
-      {/* Left side - Branding (Hidden on mobile) */}
-      <div className="hidden lg:flex lg:w-1/2 bg-gradient-sidebar flex-col justify-between p-12 relative overflow-hidden">
-        {/* Decorative element */}
-        <div className="absolute top-0 right-0 -mr-20 -mt-20 w-96 h-96 rounded-full bg-primary-500/10 blur-3xl"></div>
-        <div className="absolute bottom-0 left-0 -ml-20 -mb-20 w-80 h-80 rounded-full bg-primary-500/10 blur-3xl"></div>
-        
-        <div className="relative z-10 flex items-center gap-3">
-          <div className="bg-white/10 p-2.5 rounded-2xl backdrop-blur-md border border-white/15">
-            <Activity className="h-8 w-8 text-white shadow-[0_0_15px_rgba(14,165,233,0.5)]" />
+    <div className="flex min-h-screen bg-white">
+      {/* Left — cinematic brand panel */}
+      <div className="relative hidden overflow-hidden lg:flex lg:w-[48%] xl:w-1/2">
+        <img src={HERO_BG} alt="" className="absolute inset-0 h-full w-full object-cover" />
+        <div className="absolute inset-0 bg-gradient-to-t from-black/85 via-black/50 to-black/30" />
+        <div className="absolute inset-0 bg-gradient-to-r from-black/40 to-transparent" />
+
+        <div className="relative z-10 flex w-full flex-col justify-between p-12 text-white">
+          <Link to="/" className="brand-mark text-white">
+            Clinova
+          </Link>
+
+          <div className="max-w-md">
+            <motion.h1
+              initial={{ opacity: 0, y: 16 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.5, ease: [0.16, 1, 0.3, 1] }}
+              className="mb-4 text-[36px] font-medium leading-[1.15] tracking-tight"
+            >
+              Healthcare for Good.
+              <br />
+              Today. Tomorrow. Always.
+            </motion.h1>
+            <motion.p
+              initial={{ opacity: 0, y: 16 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.1, duration: 0.5, ease: [0.16, 1, 0.3, 1] }}
+              className="text-[15px] font-normal leading-relaxed text-white/75"
+            >
+              Access your records, connect with clinicians, and manage care from one secure workspace.
+            </motion.p>
           </div>
-          <span className="text-2xl font-extrabold text-white tracking-tight">Clinova</span>
-        </div>
-        
-        <div className="relative z-10 max-w-lg">
-          <motion.h1 
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.5 }}
-            className="text-5xl font-extrabold text-white mb-6 leading-tight"
-          >
-            Your health,<br/>securely managed.
-          </motion.h1>
-          <motion.p 
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.1, duration: 0.5 }}
-            className="text-slate-350 text-lg leading-relaxed font-medium"
-          >
-            Access your medical records, communicate with your doctors, and manage appointments with enterprise-grade security.
-          </motion.p>
-        </div>
-        
-        <div className="relative z-10 flex items-center gap-4 text-slate-500 text-sm font-semibold">
-          <span>&copy; {new Date().getFullYear()} Clinova Inc.</span>
-          <span>•</span>
-          <a href="#" className="hover:text-white transition-colors">Privacy Policy</a>
+
+          <p className="text-[12.5px] font-normal text-white/50">
+            © {new Date().getFullYear()} Clinova
+          </p>
         </div>
       </div>
 
-      {/* Right side - Form */}
-      <div className="flex-1 flex flex-col justify-center px-6 py-12 lg:px-20 bg-white/40 backdrop-blur-sm">
-        <motion.div 
-          initial={{ opacity: 0, scale: 0.95 }}
-          animate={{ opacity: 1, scale: 1 }}
-          transition={{ duration: 0.45, ease: [0.16, 1, 0.3, 1] }}
-          className="mx-auto w-full max-w-sm lg:w-96"
+      {/* Right — form */}
+      <div className="flex flex-1 flex-col justify-center px-6 py-12 sm:px-10 lg:px-16 xl:px-24">
+        <motion.div
+          initial={{ opacity: 0, y: 12 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.4, ease: [0.16, 1, 0.3, 1] }}
+          className="mx-auto w-full max-w-[400px]"
         >
-          {/* Mobile logo */}
-          <div className="flex justify-center mb-8 lg:hidden">
-            <div className="flex items-center gap-2">
-              <div className="bg-gradient-to-br from-primary-500 to-indigo-650 p-2.5 rounded-2xl shadow-lg shadow-primary-500/10">
-                <Activity className="h-6 w-6 text-white" />
-              </div>
-              <span className="text-2xl font-bold text-slate-900">Clinova</span>
-            </div>
+          <div className="mb-8 lg:hidden">
+            <Link to="/" className="brand-mark text-slate-900">
+              Clinova
+            </Link>
           </div>
 
           <div>
-            <h2 className="text-3xl font-extrabold text-slate-900 tracking-tight">
+            <h2 className="text-[24px] font-medium tracking-tight text-slate-900">
               Sign in
             </h2>
-            <p className="mt-2 text-sm font-semibold text-slate-400">
-              Welcome back! Please enter your details.
+            <p className="mt-1.5 text-[13.5px] font-normal text-slate-500">
+              Welcome back. Enter your details to continue.
             </p>
           </div>
 
-          <div className="mt-8">
+          <div className="card mt-8 p-7">
             <form className="space-y-5" onSubmit={handleSubmit(onSubmit)}>
               <div>
-                <label className="block text-sm font-bold text-slate-700 mb-1.5">
-                  Email address
-                </label>
-                <div>
-                  <input
-                    {...register('email')}
-                    type="email"
-                    placeholder="Enter your email"
-                    className={`input ${errors.email ? 'border-red-500 focus:ring-red-500 bg-red-50' : 'bg-slate-50 hover:bg-white focus:bg-white'}`}
-                  />
-                  {errors.email && (
-                    <p className="mt-1.5 text-xs font-semibold text-red-650">{errors.email.message}</p>
-                  )}
-                </div>
+                <label className="label">Email address</label>
+                <input
+                  {...register('email')}
+                  type="email"
+                  autoComplete="email"
+                  placeholder="you@example.com"
+                  className={`input ${errors.email ? 'border-red-400 bg-red-50/50 focus:ring-red-500/10' : ''}`}
+                />
+                {errors.email && (
+                  <p className="field-error">{errors.email.message}</p>
+                )}
               </div>
 
               <div>
-                <div className="flex items-center justify-between mb-1.5">
-                  <label className="block text-sm font-bold text-slate-700">
-                    Password
-                  </label>
-                  <a href="#" className="text-xs font-bold text-primary-600 hover:text-primary-500 transition-colors">
+                <div className="mb-1.5 flex items-center justify-between">
+                  <label className="label mb-0">Password</label>
+                  <a href="#" className="text-[12px] font-medium text-slate-500 transition-colors hover:text-slate-900">
                     Forgot password?
                   </a>
                 </div>
-                <div>
-                  <input
-                    {...register('password')}
-                    type="password"
-                    placeholder="••••••••"
-                    className={`input ${errors.password ? 'border-red-500 focus:ring-red-500 bg-red-50' : 'bg-slate-50 hover:bg-white focus:bg-white'}`}
-                  />
-                  {errors.password && (
-                    <p className="mt-1.5 text-xs font-semibold text-red-650">{errors.password.message}</p>
-                  )}
-                </div>
+                <input
+                  {...register('password')}
+                  type="password"
+                  autoComplete="current-password"
+                  placeholder="••••••••"
+                  className={`input ${errors.password ? 'border-red-400 bg-red-50/50 focus:ring-red-500/10' : ''}`}
+                />
+                {errors.password && (
+                  <p className="field-error">{errors.password.message}</p>
+                )}
               </div>
 
-              <div className="pt-2">
+              <div className="pt-1">
                 <button
                   type="submit"
                   disabled={isLoading}
-                  className="group relative flex w-full justify-center items-center rounded-xl bg-slate-900 px-4 py-3 text-sm font-bold text-white shadow-lg shadow-slate-900/20 hover:bg-slate-800 hover:shadow-xl hover:-translate-y-0.5 transition-all duration-200 disabled:opacity-50 disabled:pointer-events-none"
+                  className="btn btn-primary group relative w-full py-2.5"
                 >
                   {isLoading ? (
-                    <Loader2 className="w-5 h-5 animate-spin" />
+                    <Loader2 className="h-4 w-4 animate-spin" />
                   ) : (
                     <>
                       Sign in
-                      <ArrowRight className="absolute right-4 w-4 h-4 opacity-0 -translate-x-2 group-hover:opacity-100 group-hover:translate-x-0 transition-all duration-200" />
+                      <ArrowRight className="h-3.5 w-3.5 transition-transform group-hover:translate-x-0.5" />
                     </>
                   )}
                 </button>
               </div>
             </form>
 
-            <p className="mt-8 text-center text-sm font-semibold text-slate-650">
-              Don't have an account?{' '}
-              <Link to="/register" className="font-bold text-primary-650 hover:text-primary-550 transition-colors">
-                Create one now
+            <p className="mt-7 text-center text-[13px] font-normal text-slate-500">
+              Don&apos;t have an account?{' '}
+              <Link to="/register" className="font-medium text-slate-900 underline-offset-4 hover:underline">
+                Create one
               </Link>
             </p>
           </div>

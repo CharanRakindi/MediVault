@@ -1,49 +1,104 @@
 import { useState, useEffect } from 'react';
-import { HelpCircle, ChevronRight, X, Sparkles } from 'lucide-react';
+import { HelpCircle, ChevronRight, X, Sparkles, AlertCircle } from 'lucide-react';
 
-const steps = [
+const allSteps = [
   {
-    title: "Welcome to Clinova 🏥",
-    description: "Your next-gen Electronic Health Record & medical portfolio. Let's do a quick 45-second tour of the main features.",
+    title: "Welcome to Clinova",
+    description: "Your modern, unified health workspace. Let's take a brief walkthrough of the interface.",
     target: "body"
   },
   {
-    title: "Global Command Search (⌘K)",
-    description: "Press Cmd+K or Ctrl+K anywhere to open the fuzzy search command palette. Jump between sections or find patient records instantly.",
+    title: "Global Omnisearch (⌘K)",
+    description: "Access patient profiles, navigate directories, and launch clinical actions instantly using the fuzzy command palette.",
     target: "search-trigger"
   },
   {
     title: "Real-Time Notifications",
-    description: "Stay updated with live appointment adjustments, new prescriptions, and lab report completions powered by Socket.io.",
+    description: "Stay informed with live alerts for check-ins, lab results, and patient arrivals powered by Socket.io.",
     target: "notification-bell"
   },
   {
-    title: "Theme Personalization",
-    description: "Switch seamlessly between Clean Light, Deep OLED Dark, and System-preference themes.",
-    target: "theme-toggle"
+    title: "Consultation Queue",
+    description: "Monitor and sign-off today's active patient appointments sorted by chronological priority.",
+    target: "consultations-queue"
   },
   {
-    title: "Interactive Schedule",
-    description: "Manage consultations with our full calendar scheduling interface, color-coded for fast readability.",
-    target: "calendar-view"
+    title: "Laboratory Testing Board",
+    description: "Track diagnostic test workflows from collection to technician review via columns.",
+    target: "lab-kanban-board"
+  },
+  {
+    title: "Health Metrics Profile",
+    description: "Review patient profiles, contact details, insurance credentials, and blood group listings.",
+    target: "patient-health-profile"
+  },
+  {
+    title: "Patient Intake Register",
+    description: "Check in existing appointments or register brand new patient files into the system.",
+    target: "receptionist-register-form"
   }
 ];
 
 export default function OnboardingTour() {
   const [isOpen, setIsOpen] = useState(false);
+  const [activeSteps, setActiveSteps] = useState([]);
   const [currentStep, setCurrentStep] = useState(0);
 
+  // Initialize and filter steps that actually exist on the current page
   useEffect(() => {
     const hasCompletedTour = localStorage.getItem('clinova_tour_completed');
-    if (!hasCompletedTour) {
-      // Open tour on first visit
-      const timer = setTimeout(() => setIsOpen(true), 1500);
-      return () => clearTimeout(timer);
-    }
+    
+    // We delay the DOM check slightly to allow the dashboard elements to fully render
+    const timer = setTimeout(() => {
+      const filtered = allSteps.filter(step => {
+        if (step.target === 'body') return true;
+        const el = document.getElementById(step.target);
+        return el !== null;
+      });
+      setActiveSteps(filtered);
+
+      if (!hasCompletedTour && filtered.length > 0) {
+        setIsOpen(true);
+      }
+    }, 1500);
+
+    return () => clearTimeout(timer);
   }, []);
 
+  // Handle highlighting/scrolling when current step changes
+  useEffect(() => {
+    if (!isOpen || activeSteps.length === 0) return;
+
+    // First clean up any existing highlights
+    allSteps.forEach(s => {
+      if (s.target !== 'body') {
+        const el = document.getElementById(s.target);
+        if (el) el.classList.remove('tour-highlight');
+      }
+    });
+
+    const step = activeSteps[currentStep];
+    if (step && step.target !== 'body') {
+      const targetEl = document.getElementById(step.target);
+      if (targetEl) {
+        targetEl.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        targetEl.classList.add('tour-highlight');
+      }
+    }
+
+    return () => {
+      // Cleanup on unmount or change
+      allSteps.forEach(s => {
+        if (s.target !== 'body') {
+          const el = document.getElementById(s.target);
+          if (el) el.classList.remove('tour-highlight');
+        }
+      });
+    };
+  }, [currentStep, isOpen, activeSteps]);
+
   const handleNext = () => {
-    if (currentStep < steps.length - 1) {
+    if (currentStep < activeSteps.length - 1) {
       setCurrentStep(currentStep + 1);
     } else {
       handleComplete();
@@ -53,67 +108,88 @@ export default function OnboardingTour() {
   const handleComplete = () => {
     localStorage.setItem('clinova_tour_completed', 'true');
     setIsOpen(false);
+    
+    // Clean up highlights
+    allSteps.forEach(s => {
+      if (s.target !== 'body') {
+        const el = document.getElementById(s.target);
+        if (el) el.classList.remove('tour-highlight');
+      }
+    });
   };
 
-  if (!isOpen) return (
-    <button 
-      onClick={() => {
-        setCurrentStep(0);
-        setIsOpen(true);
-      }}
-      className="fixed bottom-6 left-6 z-[90] flex items-center gap-1.5 bg-white border border-slate-200 text-slate-600 hover:text-primary-600 hover:border-primary-300 px-3.5 py-2 rounded-full shadow-lg text-xs font-bold transition-all hover:scale-105 active:scale-95"
-      title="Take onboarding tour"
-    >
-      <Sparkles className="w-3.5 h-3.5 text-primary-500 animate-pulse" />
-      <span>Tour Guide</span>
-    </button>
-  );
+  const handleRestart = () => {
+    const filtered = allSteps.filter(step => {
+      if (step.target === 'body') return true;
+      const el = document.getElementById(step.target);
+      return el !== null;
+    });
+    setActiveSteps(filtered);
+    setCurrentStep(0);
+    setIsOpen(true);
+  };
 
-  const step = steps[currentStep];
+  if (!isOpen) {
+    return (
+      <button
+        type="button"
+        onClick={handleRestart}
+        className="fixed bottom-6 left-6 z-[90] flex items-center gap-1.5 rounded-full border border-slate-200/80 bg-white px-3.5 py-2.5 text-[12px] font-medium text-slate-500 shadow-premium transition-all duration-200 hover:border-slate-300 hover:bg-slate-50 hover:text-slate-800 active:scale-95"
+        title="Take onboarding tour"
+      >
+        <Sparkles className="h-3.5 w-3.5 text-slate-400" />
+        <span>Tour guide</span>
+      </button>
+    );
+  }
+
+  const step = activeSteps[currentStep];
+  if (!step) return null;
 
   return (
-    <div className="fixed inset-0 z-[110] flex items-center justify-center bg-slate-950/60 backdrop-blur-sm p-4 animate-fade-in">
-      <div className="relative w-full max-w-md bg-white rounded-3xl p-6 shadow-2xl border border-slate-100 overflow-hidden transform animate-scale-in">
-        {/* Gradients */}
-        <div className="absolute top-0 right-0 -mr-16 -mt-16 w-36 h-36 bg-gradient-to-br from-primary-400 to-indigo-600 opacity-20 rounded-full blur-2xl"></div>
+    <>
+      <div className="pointer-events-none fixed inset-0 z-[99] bg-slate-950/[0.06] backdrop-blur-[0.5px]" />
 
-        <button 
-          onClick={handleComplete} 
-          className="absolute top-4 right-4 text-slate-400 hover:text-slate-600 p-1.5 rounded-lg hover:bg-slate-100 transition-colors"
+      <div className="fixed bottom-6 right-6 z-[100] w-full max-w-sm animate-scale-in overflow-hidden rounded-2xl border border-slate-200/80 bg-white p-5 shadow-premium-lg">
+        <div className="absolute inset-x-0 top-0 h-px bg-slate-200" />
+
+        <button
+          type="button"
+          onClick={handleComplete}
+          className="absolute right-4 top-4 rounded-lg p-1 text-slate-400 transition-colors hover:bg-slate-50 hover:text-slate-600"
+          aria-label="Close tour"
         >
-          <X className="w-4.5 h-4.5" />
+          <X className="h-4 w-4" />
         </button>
 
-        <div className="flex items-center gap-2 mb-4">
-          <span className="px-2 py-0.5 bg-primary-100 text-primary-600 rounded-md text-[10px] font-bold tracking-wider uppercase">
-            Step {currentStep + 1} of {steps.length}
+        <div className="mb-3.5 mt-1 flex items-center gap-2">
+          <span className="badge badge-neutral uppercase tracking-wider">
+            Step {currentStep + 1} of {activeSteps.length}
           </span>
         </div>
 
-        <h3 className="text-xl font-extrabold text-slate-900 mb-2 pr-6">
+        <h3 className="mb-1.5 pr-6 text-[15px] font-medium leading-tight text-slate-900">
           {step.title}
         </h3>
-        <p className="text-sm font-medium text-slate-600 leading-relaxed mb-6">
+        <p className="mb-5 text-[12.5px] font-normal leading-relaxed text-slate-500">
           {step.description}
         </p>
 
-        <div className="flex items-center justify-between pt-4 border-t border-slate-100">
-          <button 
-            onClick={handleComplete} 
-            className="text-xs font-bold text-slate-400 hover:text-slate-600 transition-colors"
+        <div className="flex items-center justify-between border-t border-slate-100 pt-4">
+          <button
+            type="button"
+            onClick={handleComplete}
+            className="text-[12px] font-medium text-slate-400 transition-colors hover:text-slate-600"
           >
-            Skip Tour
+            Skip
           </button>
-          
-          <button 
-            onClick={handleNext} 
-            className="flex items-center gap-1 bg-slate-900 text-white hover:bg-slate-800 px-4 py-2 rounded-xl text-xs font-bold transition-all shadow-sm"
-          >
-            <span>{currentStep === steps.length - 1 ? "Finish" : "Next"}</span>
-            <ChevronRight className="w-3.5 h-3.5" />
+
+          <button type="button" onClick={handleNext} className="btn btn-primary btn-sm">
+            <span>{currentStep === activeSteps.length - 1 ? 'Finish' : 'Next'}</span>
+            <ChevronRight className="h-3.5 w-3.5" />
           </button>
         </div>
       </div>
-    </div>
+    </>
   );
 }

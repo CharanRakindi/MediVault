@@ -49,25 +49,26 @@ export default function AuditLogs() {
 
   return (
     <div className="space-y-6 pb-8 animate-fade-in">
-      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 bg-white p-6 rounded-2xl shadow-sm border border-slate-100">
+      <div className="page-header">
         <div>
-          <h1 className="text-2xl font-extrabold text-slate-900 tracking-tight flex items-center gap-2">
-            <ShieldAlert className="w-6 h-6 text-primary-500" />
-            Security Audit Logs
-          </h1>
-          <p className="text-sm font-medium text-slate-500 mt-1">Review system activities, login events, and medical record access audits</p>
+          <h1 className="page-title">Audit logs</h1>
+          <p className="page-subtitle">
+            System activity, login events, and record access audits
+          </p>
         </div>
         <button
+          type="button"
           onClick={handleExportCSV}
           disabled={isLoading || !data?.data?.length}
-          className="flex items-center gap-2 bg-white hover:bg-slate-50 text-slate-700 px-4 py-2.5 rounded-xl text-sm font-bold border border-slate-200 transition-colors shadow-sm disabled:opacity-50"
+          className="btn btn-secondary"
         >
-          <Download className="w-4 h-4" /> Export CSV
+          <Download className="h-3.5 w-3.5" />
+          Export CSV
         </button>
       </div>
 
       {/* Filters */}
-      <div className="bg-white p-4 rounded-2xl border border-slate-100 flex flex-col md:flex-row gap-4 items-center justify-between">
+      <div className="card p-4 flex flex-col md:flex-row gap-4 items-center justify-between">
         <div className="relative w-full md:max-w-xs">
           <Search className="absolute left-3 top-3 w-4 h-4 text-slate-400" />
           <input
@@ -75,7 +76,7 @@ export default function AuditLogs() {
             placeholder="Search action, IP address..."
             value={search}
             onChange={(e) => { setSearch(e.target.value); setPage(1); }}
-            className="w-full pl-9 pr-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm font-medium focus:ring-2 focus:ring-primary-500/20 focus:border-primary-500 transition-all outline-none"
+            className="input pl-9"
           />
         </div>
 
@@ -85,7 +86,7 @@ export default function AuditLogs() {
             <select
               value={actionFilter}
               onChange={(e) => { setActionFilter(e.target.value); setPage(1); }}
-              className="bg-slate-50 border border-slate-200 text-slate-700 text-sm font-bold rounded-xl px-4 py-2.5 outline-none w-full md:w-44"
+              className="input cursor-pointer w-full md:w-44"
             >
               <option value="">All Actions</option>
               <option value="LOGIN">Login</option>
@@ -99,21 +100,21 @@ export default function AuditLogs() {
       </div>
 
       {/* Table container */}
-      <div className="bg-white border border-slate-100 rounded-2xl overflow-hidden shadow-sm">
+      <div className="card overflow-hidden">
         <div className="overflow-x-auto">
           <table className="w-full text-left border-collapse">
-            <thead>
-              <tr className="bg-slate-50 text-slate-500 text-xs font-bold uppercase tracking-wider border-b border-slate-100">
-                <th className="px-6 py-4">Timestamp</th>
-                <th className="px-6 py-4">Actor</th>
-                <th className="px-6 py-4">Role</th>
-                <th className="px-6 py-4">Action</th>
-                <th className="px-6 py-4">Resource</th>
-                <th className="px-6 py-4">IP Address</th>
-                <th className="px-6 py-4">Details</th>
+            <thead className="bg-slate-50/60">
+              <tr className="text-[11px] font-semibold text-slate-400 uppercase tracking-wider border-b border-slate-100">
+                <th className="px-6 py-3.5">Timestamp</th>
+                <th className="px-6 py-3.5">Actor</th>
+                <th className="px-6 py-3.5">Role</th>
+                <th className="px-6 py-3.5">Action</th>
+                <th className="px-6 py-3.5">Resource</th>
+                <th className="px-6 py-3.5">IP Address</th>
+                <th className="px-6 py-3.5">Details</th>
               </tr>
             </thead>
-            <tbody className="divide-y divide-slate-100 text-slate-700 text-sm font-semibold">
+            <tbody className="divide-y divide-slate-50 text-[13px] font-medium bg-white">
               {isLoading ? (
                 Array.from({ length: 6 }).map((_, i) => (
                   <tr key={i}>
@@ -128,45 +129,45 @@ export default function AuditLogs() {
                 ))
               ) : !data?.data || data.data.length === 0 ? (
                 <tr>
-                  <td colSpan={7} className="px-6 py-12 text-center text-slate-400">
-                    <FileText className="w-12 h-12 mx-auto mb-3 text-slate-300" />
+                  <td colSpan={7} className="px-6 py-14 text-center text-slate-400 text-[12.5px]">
+                    <FileText className="w-10 h-10 mx-auto mb-3 text-slate-300" />
                     No audit records match your query
                   </td>
                 </tr>
               ) : (
                 data.data.map((log) => (
                   <tr key={log._id} className="hover:bg-slate-50/50 transition-colors">
-                    <td className="px-6 py-4 whitespace-nowrap text-xs font-mono text-slate-400">
+                    <td className="px-6 py-3.5 whitespace-nowrap text-[11px] font-mono text-slate-400">
                       {format(new Date(log.timestamp), 'yyyy-MM-dd HH:mm:ss')}
                     </td>
-                    <td className="px-6 py-4">
+                    <td className="px-6 py-3.5">
                       <div className="flex flex-col">
-                        <span>{log.actor?.name || 'System'}</span>
-                        <span className="text-xs font-medium text-slate-400">{log.actor?.email || 'N/A'}</span>
+                        <span className="font-semibold text-slate-800">{log.actor?.name || 'System'}</span>
+                        <span className="text-[11.5px] font-medium text-slate-400">{log.actor?.email || 'N/A'}</span>
                       </div>
                     </td>
-                    <td className="px-6 py-4">
-                      <span className="text-xs uppercase font-bold text-slate-400">
+                    <td className="px-6 py-3.5 whitespace-nowrap">
+                      <span className="text-[11px] uppercase font-semibold text-slate-500 bg-slate-50 border border-slate-100 rounded px-1.5 py-0.5">
                         {log.actorRole}
                       </span>
                     </td>
-                    <td className="px-6 py-4">
-                      <span className={`inline-flex px-2 py-0.5 rounded text-xs font-bold uppercase tracking-wider ${
-                        log.action === 'CREATE' ? 'bg-emerald-50 text-emerald-600' :
-                        log.action === 'LOGIN' ? 'bg-indigo-50 text-indigo-600' :
-                        log.action === 'UPDATE' ? 'bg-amber-50 text-amber-600' :
-                        'bg-slate-100 text-slate-600'
+                    <td className="px-6 py-3.5 whitespace-nowrap">
+                      <span className={`inline-flex px-2 py-0.5 rounded text-[10px] font-semibold border ${
+                        log.action === 'CREATE' ? 'bg-emerald-50 text-emerald-700 border-emerald-100' :
+                        log.action === 'LOGIN' ? 'bg-indigo-50 text-indigo-700 border-indigo-100' :
+                        log.action === 'UPDATE' ? 'bg-amber-50 text-amber-700 border-amber-100' :
+                        'bg-slate-50 text-slate-600 border-slate-200'
                       }`}>
                         {log.action}
                       </span>
                     </td>
-                    <td className="px-6 py-4 whitespace-nowrap text-slate-500">
+                    <td className="px-6 py-3.5 whitespace-nowrap text-slate-500">
                       {log.resourceType}
                     </td>
-                    <td className="px-6 py-4 font-mono text-xs text-slate-400">
+                    <td className="px-6 py-3.5 font-mono text-[11.5px] text-slate-400">
                       {log.ipAddress}
                     </td>
-                    <td className="px-6 py-4 max-w-xs truncate text-xs text-slate-400" title={JSON.stringify(log.metadata)}>
+                    <td className="px-6 py-3.5 max-w-xs truncate text-[11.5px] text-slate-400" title={JSON.stringify(log.metadata)}>
                       {JSON.stringify(log.metadata || {})}
                     </td>
                   </tr>
@@ -178,24 +179,24 @@ export default function AuditLogs() {
 
         {/* Pagination controls */}
         {data?.pagination && data.pagination.pages > 1 && (
-          <div className="px-6 py-4 bg-slate-50 border-t border-slate-100 flex items-center justify-between">
-            <span className="text-xs font-bold text-slate-500">
+          <div className="px-6 py-3.5 border-t border-slate-100 flex items-center justify-between">
+            <span className="text-[12.5px] font-medium text-slate-400">
               Showing page {page} of {data.pagination.pages}
             </span>
             <div className="flex gap-2">
               <button
                 disabled={page <= 1}
                 onClick={() => setPage(prev => prev - 1)}
-                className="p-1.5 rounded-lg border border-slate-200 bg-white hover:bg-slate-50 disabled:opacity-50 transition-colors"
+                className="btn btn-outline p-1.5"
               >
-                <ArrowLeft className="w-4 h-4 text-slate-600" />
+                <ArrowLeft className="w-4 h-4" />
               </button>
               <button
                 disabled={page >= data.pagination.pages}
                 onClick={() => setPage(prev => prev + 1)}
-                className="p-1.5 rounded-lg border border-slate-200 bg-white hover:bg-slate-50 disabled:opacity-50 transition-colors"
+                className="btn btn-outline p-1.5"
               >
-                <ArrowRight className="w-4 h-4 text-slate-600" />
+                <ArrowRight className="w-4 h-4" />
               </button>
             </div>
           </div>
@@ -204,3 +205,4 @@ export default function AuditLogs() {
     </div>
   );
 }
+

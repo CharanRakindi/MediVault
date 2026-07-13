@@ -7,6 +7,17 @@ const router = express.Router();
 // Public route for searching doctors
 router.get('/', getDoctors);
 
+// Get all departments
+router.get('/departments', async (req, res, next) => {
+  try {
+    const Department = (await import('../models/Department.js')).default;
+    const depts = await Department.find({});
+    res.json({ success: true, data: depts });
+  } catch (error) {
+    next(error);
+  }
+});
+
 router.use(authenticate);
 
 router.route('/:doctorId')

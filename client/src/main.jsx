@@ -17,7 +17,18 @@ ReactDOM.createRoot(document.getElementById('root')).render(
         <AuthProvider>
           <SocketProvider>
             <App />
-            <Toaster position="top-right" richColors />
+            <Toaster
+              position="top-right"
+              richColors
+              toastOptions={{
+                className: 'font-sans text-[13px]',
+                style: {
+                  borderRadius: '14px',
+                  border: '1px solid rgba(226, 232, 240, 0.9)',
+                  boxShadow: '0 8px 24px -8px rgba(15, 23, 42, 0.12)',
+                },
+              }}
+            />
           </SocketProvider>
         </AuthProvider>
       </QueryClientProvider>

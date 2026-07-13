@@ -60,112 +60,104 @@ const AdminDashboard = () => {
   const chartData = getWeeklyTrendData();
 
   return (
-    <div className="space-y-8 pb-8 animate-fade-in">
-      {/* Welcome Banner */}
-      <div className="relative rounded-2xl bg-gradient-to-r from-primary-600 to-primary-700 p-8 shadow-sm overflow-hidden text-white animate-fade-in-up">
-        <div className="absolute right-0 top-0 -mr-16 -mt-16 w-64 h-64 rounded-full bg-white opacity-10 blur-3xl"></div>
-        <div className="absolute right-32 bottom-0 -mb-16 w-48 h-48 rounded-full bg-primary-400 opacity-20 blur-2xl"></div>
-        
-        <div className="relative z-10">
-          <h1 className="text-3xl font-extrabold tracking-tight mb-2">
-            Welcome back, {user?.name.split(' ')[0]} 👋
-          </h1>
-          <p className="text-primary-100 font-medium max-w-xl">
-            Here's what's happening across your hospital network today. You have {stats?.totalAppointments || 0} active appointments in the system.
+    <div className="space-y-6 pb-8 animate-fade-in">
+      <div className="page-header">
+        <div>
+          <h1 className="page-title">Admin console</h1>
+          <p className="page-subtitle">
+            System healthy · Database connected · 0 critical alerts
           </p>
         </div>
       </div>
       
       {/* Stat Cards Grid */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+      <div className="grid grid-cols-1 gap-5 md:grid-cols-2 lg:grid-cols-4">
         <StatCard 
           index={0}
           title="Total Users" 
           value={stats?.totalUsers || 0} 
           icon={Users} 
-          className="border-t-4 border-t-primary-500"
-          description="Registered system-wide"
+          contextText="System-wide registered accounts"
+          actionText="Manage user directory"
+          actionHref="/admin/users"
         />
         <StatCard 
           index={1}
           title="Total Patients" 
           value={stats?.totalPatients || 0} 
           icon={UserPlus} 
-          className="border-t-4 border-t-primary-500"
-          description="Active patient records"
+          contextText="Active clinical EHR files"
+          actionText="Open patient directory"
+          actionHref="/doctor/patients"
         />
         <StatCard 
           index={2}
-          title="Total Doctors" 
+          title="Practitioners" 
           value={stats?.totalDoctors || 0} 
           icon={Stethoscope} 
-          className="border-t-4 border-t-primary-500"
-          description="Specialists & general"
+          contextText="Credentialed medical doctors"
+          actionText="Update staff status"
+          actionHref="/admin/users"
         />
         <StatCard 
           index={3}
-          title="Total Appointments" 
+          title="Total Schedule" 
           value={stats?.totalAppointments || 0} 
           icon={Calendar} 
-          className="border-t-4 border-t-primary-500"
-          description="Across all departments"
+          contextText="Total active clinical records"
+          actionText="Open receptionist queue"
+          actionHref="/receptionist/dashboard"
         />
       </div>
 
       {/* Charts Section */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         {/* Weekly Trend Bar Chart */}
-        <div className="lg:col-span-2 bg-white border border-slate-100 p-6 rounded-2xl shadow-sm">
-          <div className="flex items-center justify-between mb-6">
+        <div className="card p-5 lg:col-span-2">
+          <div className="flex items-center justify-between mb-5">
             <div>
-              <h2 className="text-lg font-bold text-slate-900">Weekly Appointments Trend</h2>
-              <p className="text-sm text-slate-500 font-medium">Consultations over the last 7 days</p>
+              <h2 className="text-[14.5px] font-semibold text-slate-800">Weekly Consultation Trends</h2>
+              <p className="text-[11.5px] font-medium text-slate-400 mt-0.5">Total processed events over the last 7 days</p>
             </div>
-            <div className="bg-emerald-50 text-emerald-600 px-3 py-1 rounded-full text-xs font-bold flex items-center gap-1">
+            <div className="bg-emerald-50 text-emerald-700 px-2 py-0.5 rounded text-[11px] font-semibold flex items-center gap-1">
               <TrendingUp className="w-3 h-3" />
               +12.5%
             </div>
           </div>
-          <div className="h-[300px] w-full">
+          <div className="h-[260px] w-full">
             <ResponsiveContainer width="100%" height="100%">
               <BarChart data={chartData} margin={{ top: 10, right: 10, left: -20, bottom: 0 }}>
                 <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#f1f5f9" />
-                <XAxis dataKey="name" axisLine={false} tickLine={false} tick={{ fill: '#94a3b8', fontSize: 12 }} dy={10} />
-                <YAxis axisLine={false} tickLine={false} tick={{ fill: '#94a3b8', fontSize: 12 }} />
+                <XAxis dataKey="name" axisLine={false} tickLine={false} tick={{ fill: '#94a3b8', fontSize: 11 }} dy={5} />
+                <YAxis axisLine={false} tickLine={false} tick={{ fill: '#94a3b8', fontSize: 11 }} />
                 <Tooltip 
                   cursor={{fill: '#f8fafc'}} 
-                  contentStyle={{borderRadius: '12px', border: '1px solid #e2e8f0'}} 
+                  contentStyle={{borderRadius: '8px', border: '1px solid #e2e8f0', fontSize: '12px'}} 
                 />
-                <Bar dataKey="appointments" fill="url(#colorUv)" radius={[6, 6, 0, 0]} barSize={40} />
-                <defs>
-                  <linearGradient id="colorUv" x1="0" y1="0" x2="0" y2="1">
-                    <stop offset="0%" stopColor="#60a5fa" stopOpacity={1}/>
-                    <stop offset="100%" stopColor="#2563eb" stopOpacity={1}/>
-                  </linearGradient>
-                </defs>
+                <Bar dataKey="appointments" fill="#2563EB" radius={[4, 4, 0, 0]} barSize={32} />
               </BarChart>
             </ResponsiveContainer>
           </div>
         </div>
 
         {/* Audit Log Overview Widget */}
-        <div className="bg-white border border-slate-100 p-6 rounded-2xl shadow-sm flex flex-col justify-between">
+        <div className="card p-5 flex flex-col justify-between">
           <div>
-            <h2 className="text-lg font-bold text-slate-900 mb-4 flex items-center gap-1.5">
-              <ShieldAlert className="w-5 h-5 text-primary-500" />
-              Recent Actions
+            <h2 className="text-[14.5px] font-semibold text-slate-800 mb-4 flex items-center gap-2">
+              <ShieldAlert className="w-4 h-4 text-slate-500" />
+              Security Audit Activity
             </h2>
             <div className="space-y-4">
               {auditLogs?.map((log) => (
-                <div key={log._id} className="flex gap-3 text-xs font-semibold">
-                  <div className="p-2 bg-slate-50 rounded-xl text-slate-400 self-start shrink-0">
+                <div key={log._id} className="flex gap-3">
+                  <div className="p-1.5 bg-slate-50 border border-slate-100 rounded-lg text-slate-400 self-start shrink-0">
                     <Clock className="w-3.5 h-3.5" />
                   </div>
                   <div>
-                    <p className="text-slate-850">
-                      {log.actor?.name || 'System'} performed <span className="text-primary-650">{log.action}</span>
+                    <p className="text-[12.5px] font-medium text-slate-700">
+                      {log.actor?.name || 'System'} performed <span className="font-semibold text-slate-900">{log.action}</span>
                     </p>
-                    <p className="text-slate-400 mt-0.5 font-medium">
+                    <p className="text-[11px] text-slate-400 mt-0.5">
                       {log.resourceType} • {format(new Date(log.timestamp), 'MMM dd, hh:mm a')}
                     </p>
                   </div>
@@ -174,12 +166,12 @@ const AdminDashboard = () => {
             </div>
           </div>
 
-          <div className="mt-6">
+          <div className="mt-5">
             <button 
               onClick={() => window.location.href = '/admin/audit-logs'}
-              className="w-full py-2.5 bg-slate-50 hover:bg-slate-100 text-slate-700 text-xs font-bold rounded-xl border border-slate-200 transition-colors"
+              className="btn btn-outline w-full py-2 text-[12.5px]"
             >
-              View Full Logs
+              Open Audit Console
             </button>
           </div>
         </div>

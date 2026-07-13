@@ -196,7 +196,7 @@ const seedData = async () => {
         testName: 'Brain MRI',
         testType: 'Imaging',
         orderedDate: new Date(),
-        status: 'pending'
+        status: 'ordered'
       }
     ]);
 
