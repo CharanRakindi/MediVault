@@ -13,13 +13,6 @@ Cinematic marketing site, role-based workspaces, JWT cookie auth, and Socket.io 
 
 **Repo:** [github.com/CharanRakindi/Clinova](https://github.com/CharanRakindi/Clinova)
 
-### Live demo
-
-> Deploy on **AWS Lightsail/EC2** (below), then replace this line:  
-> **Live:** `http://YOUR_PUBLIC_IP` (or your HTTPS domain)  
-> Demo login: `admin@clinova.com` / `password123`
-
-**Local Docker:** [http://localhost](http://localhost) when compose is running.
 
 ### Screenshots
 
