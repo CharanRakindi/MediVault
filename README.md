@@ -54,7 +54,7 @@ Cinematic marketing site, role-based workspaces, JWT cookie auth, and Socket.io 
 | Auth | JWT (access + refresh), bcrypt, HttpOnly cookies |
 | Realtime | Socket.io |
 | Deploy | **Docker Compose on AWS Lightsail / EC2** |
-| CI / CD | GitHub Actions (test + SSH deploy to AWS) |
+| CI / CD | GitHub Actions (CI on push; **manual** SSH deploy) |
 
 ---
 
@@ -169,13 +169,13 @@ Details: [docs/DEPLOY-AWS.md](docs/DEPLOY-AWS.md)
 
 ### Update the app later
 
-**Automated (recommended):** after one-time GitHub secrets setup, every successful CI on `main` deploys via SSH.
+**GitHub Actions (manual only):** after one-time secrets setup, run **Actions → Deploy → Run workflow** (optional `ref` = branch / tag / SHA for deploy or rollback). Pushes never auto-deploy.
 
-See **[Continuous deploy](docs/DEPLOY-AWS.md#continuous-deploy-github-actions--ssh)** in `docs/DEPLOY-AWS.md`.
+See **[Continuous deploy](docs/DEPLOY-AWS.md#continuous-deploy-github-actions--ssh-manual-only)** in `docs/DEPLOY-AWS.md`.
 
 Secrets: `DEPLOY_HOST`, `DEPLOY_USER`, `DEPLOY_SSH_KEY`.
 
-**Manual:**
+**On the server:**
 
 ```bash
 cd ~/Clinova
@@ -202,7 +202,7 @@ CI runs these on every push to `main`.
 Clinova/
 ├── .github/workflows/
 │   ├── ci.yml                 # Lint, test, Docker smoke
-│   └── deploy.yml             # SSH deploy after CI (optional secrets)
+│   └── deploy.yml             # Manual SSH deploy / rollback (optional secrets)
 ├── docker-compose.yml
 ├── .env.docker.example
 ├── docs/

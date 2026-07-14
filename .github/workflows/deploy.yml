@@ -1,16 +1,19 @@
 # Clinova CD — SSH into AWS (Lightsail/EC2) and rebuild Docker Compose.
 #
-# Runs after CI succeeds on main/master, or manually via "Run workflow".
+# Manual only: Actions → Deploy → Run workflow.
+# Optional input: git ref (branch, tag, or commit SHA) for deploy or rollback.
 # Setup: docs/DEPLOY-AWS.md → Continuous deploy
 
 name: Deploy
 
 on:
-  workflow_run:
-    workflows: ["CI"]
-    types: [completed]
-    branches: [main, master]
   workflow_dispatch:
+    inputs:
+      ref:
+        description: "Git ref to deploy (branch, tag, or commit SHA). Default: main"
+        required: false
+        default: "main"
+        type: string
 
 concurrency:
   group: deploy-production
@@ -20,9 +23,6 @@ jobs:
   deploy:
     name: Deploy to AWS
     runs-on: ubuntu-latest
-    if: >
-      github.event_name == 'workflow_dispatch' ||
-      github.event.workflow_run.conclusion == 'success'
 
     steps:
       - name: Check deploy secrets
@@ -53,12 +53,14 @@ jobs:
           port: 22
           command_timeout: 45m
           script_stop: true
-          envs: DEPLOY_PATH
+          envs: DEPLOY_PATH,DEPLOY_REF
           script: |
             set -euo pipefail
 
             DEPLOY_PATH="${DEPLOY_PATH:-$HOME/Clinova}"
+            DEPLOY_REF="${DEPLOY_REF:-main}"
             echo "==> Deploy path: ${DEPLOY_PATH}"
+            echo "==> Deploy ref:  ${DEPLOY_REF}"
 
             if [ ! -d "${DEPLOY_PATH}" ]; then
               echo "ERROR: ${DEPLOY_PATH} not found."
@@ -75,20 +77,20 @@ jobs:
             cd "${DEPLOY_PATH}"
 
             echo "==> Before: $(git rev-parse --short HEAD 2>/dev/null || echo unknown)"
-            git fetch --prune origin
+            git fetch --prune origin --tags
 
-            if git show-ref --verify --quiet refs/remotes/origin/main; then
-              BRANCH=main
-            elif git show-ref --verify --quiet refs/remotes/origin/master; then
-              BRANCH=master
+            # Resolve ref: origin/<branch>, tag, or commit SHA
+            if git rev-parse --verify --quiet "origin/${DEPLOY_REF}" >/dev/null; then
+              TARGET="origin/${DEPLOY_REF}"
+            elif git rev-parse --verify --quiet "${DEPLOY_REF}" >/dev/null; then
+              TARGET="${DEPLOY_REF}"
             else
-              echo "ERROR: origin/main or origin/master not found"
+              echo "ERROR: Could not resolve ref '${DEPLOY_REF}' (try main, a tag, or full SHA after fetch)."
               exit 1
             fi
 
-            git checkout "${BRANCH}"
-            git reset --hard "origin/${BRANCH}"
-            echo "==> Now at $(git rev-parse --short HEAD) (${BRANCH})"
+            git checkout --detach "${TARGET}"
+            echo "==> Now at $(git rev-parse --short HEAD) (${TARGET})"
 
             if docker info >/dev/null 2>&1; then
               COMPOSE="docker compose"
@@ -132,6 +134,7 @@ jobs:
             echo "==> Deploy finished"
         env:
           DEPLOY_PATH: ${{ vars.DEPLOY_PATH }}
+          DEPLOY_REF: ${{ inputs.ref }}
 
       - name: Public health check
         env:

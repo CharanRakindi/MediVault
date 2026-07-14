@@ -44,11 +44,12 @@ COOKIE_SAMESITE=lax
 
 ---
 
-## Continuous deploy
+## Continuous deploy (manual only)
 
-After the first manual deploy, add GitHub secrets (`DEPLOY_HOST`, `DEPLOY_USER`, `DEPLOY_SSH_KEY`) so successful CI on `main` SSHs to the server and rebuilds compose.
+After the first on-server deploy, add GitHub secrets (`DEPLOY_HOST`, `DEPLOY_USER`, `DEPLOY_SSH_KEY`).  
+Then ship or roll back via **Actions → Deploy → Run workflow** (optional `ref` = branch / tag / SHA). **No auto-deploy on push.**
 
-Full steps: **[DEPLOY-AWS.md → Continuous deploy](./DEPLOY-AWS.md#continuous-deploy-github-actions--ssh)**
+Full steps: **[DEPLOY-AWS.md → Continuous deploy](./DEPLOY-AWS.md#continuous-deploy-github-actions--ssh-manual-only)**
 
 ---
 
@@ -57,4 +58,4 @@ Full steps: **[DEPLOY-AWS.md → Continuous deploy](./DEPLOY-AWS.md#continuous-d
 1. Open `http://YOUR_PUBLIC_IP`  
 2. Seed demo data if needed (see AWS guide)  
 3. Put the public URL in the root README **Live demo** section  
-4. (Optional) Wire CD secrets so pushes update AWS automatically  
+4. (Optional) Wire CD secrets and use **Run workflow** when you want to update AWS  

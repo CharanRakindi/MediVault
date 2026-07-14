@@ -233,17 +233,21 @@ git pull origin main
 docker compose --env-file .env.docker up --build -d
 ```
 
-Or use **Continuous deploy** (below) so every successful CI on `main` updates the server automatically.
+Or use **manual Deploy** (below) from GitHub Actions when you want to ship or roll back — nothing deploys on push by itself.
 
 ---
 
-## Continuous deploy (GitHub Actions → SSH)
+## Continuous deploy (GitHub Actions → SSH, **manual only**)
 
-After the **first** manual deploy (clone + `.env.docker` + compose up), you can automate updates.
+After the **first** on-server setup (clone + `.env.docker` + compose up), you can update production from GitHub without SSHing yourself.
 
-**Flow:** push to `main` → **CI** (lint/test/Docker) → on success → **Deploy** SSHs to AWS → `git reset --hard origin/main` → `docker compose up --build -d` → health check.
+**Flow:** when you choose → **Actions → Deploy → Run workflow** → SSH to AWS → checkout chosen ref → `docker compose up --build -d` → health check.
 
-You can also run **Actions → Deploy → Run workflow** for a manual deploy.
+**Not automatic:** pushes only run **CI**. Production changes only when you run Deploy.
+
+| Input | Default | Use |
+|-------|---------|-----|
+| `ref` | `main` | Branch name, tag, or commit SHA (rollback = past SHA) |
 
 ### 1. Create an SSH deploy key (on your Mac)
 
@@ -307,11 +311,15 @@ git remote -v
 git remote set-url origin https://github.com/CharanRakindi/Clinova.git
 ```
 
-### 6. Verify
+### 6. Deploy or roll back
 
-1. Push a small change to `main`, or **Actions → Deploy → Run workflow**
-2. Open **Actions** → **Deploy** → confirm green
-3. Hit `http://YOUR_PUBLIC_IP/health`
+1. Prefer a **green CI** run on the commit you ship (check **Actions → CI**).
+2. **Actions → Deploy → Run workflow**
+3. Set **ref** to `main` (latest) or a **commit SHA** / tag to roll back
+4. Confirm the job is green
+5. Hit `http://YOUR_PUBLIC_IP/health`
+
+**Rollback example:** open a past green commit in GitHub → copy full SHA → Deploy with that `ref`.
 
 ### Troubleshooting CD
 
@@ -323,7 +331,7 @@ git remote set-url origin https://github.com/CharanRakindi/Clinova.git
 | `~/Clinova` not found | Set `DEPLOY_PATH` variable or clone into `$HOME/Clinova` |
 | `.env.docker` missing | Create it once on the server (never commit it) |
 | Docker permission denied | `sudo usermod -aG docker ubuntu` then reconnect once; workflow falls back to `sudo docker` |
-| Deploy skipped after push | Only runs when **CI** succeeds; fix CI first |
+| Could not resolve ref | Use full commit SHA, or a branch that exists on `origin` |
 | Build OOM on instance | Use ≥2 GB RAM or build less often |
 
 Workflow file: [`.github/workflows/deploy.yml`](../.github/workflows/deploy.yml)
