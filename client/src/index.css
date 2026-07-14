@@ -1,4 +1,5 @@
-@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Instrument+Serif:ital@0;1&display=swap');
+/* Fonts also linked in index.html for faster first paint; keep import as fallback for Vite CSS pipeline */
+@import url('https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=Inter:wght@400;500;600;700&family=Syne:wght@500;600;700;800&display=swap');
 
 @tailwind base;
 @tailwind components;
@@ -184,9 +185,12 @@
     @apply rounded-xl border border-slate-100 bg-slate-50/50 p-3.5;
   }
 
-  /* —— Brand mark —— */
+  /* —— Brand mark (wordmark fallback when not using <BrandMark />) —— */
   .brand-mark {
-    @apply text-[17px] font-medium tracking-tight;
+    @apply inline-flex items-center font-brand text-[17px] font-semibold tracking-[-0.045em];
+  }
+  .brand-mark-va {
+    @apply bg-gradient-to-r from-sky-600 via-cyan-600 to-teal-600 bg-clip-text text-transparent;
   }
 }
 

@@ -1,5 +1,6 @@
 import { Link } from 'react-router-dom';
 import { ArrowLeft, Home } from 'lucide-react';
+import BrandMark from '../components/BrandMark';
 
 export default function NotFound() {
   return (
@@ -7,6 +8,9 @@ export default function NotFound() {
       <div className="pointer-events-none absolute inset-0 bg-gradient-mesh" />
 
       <div className="relative z-10 w-full max-w-md">
+        <div className="mb-6 flex justify-center">
+          <BrandMark size="md" tone="dark" asLink />
+        </div>
         <div className="card p-8 sm:p-10">
           <p className="text-[11px] font-medium uppercase tracking-[0.2em] text-slate-400">
             Error 404
@@ -33,10 +37,6 @@ export default function NotFound() {
             </button>
           </div>
         </div>
-
-        <p className="mt-6 text-[12.5px] font-normal text-slate-400">
-          Clinova
-        </p>
       </div>
     </div>
   );

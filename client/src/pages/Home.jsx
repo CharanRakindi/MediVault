@@ -23,6 +23,7 @@ import {
   Lock,
   Activity,
 } from 'lucide-react';
+import BrandMark from '../components/BrandMark';
 
 /* ─── Content ─── */
 
@@ -297,13 +298,8 @@ const Home = () => {
           className="mx-auto flex h-16 max-w-[1340px] items-center justify-between px-5 sm:px-8 lg:px-10"
           aria-label="Primary"
         >
-          <a
-            href="#home"
-            className={`text-[17px] font-semibold tracking-[-0.02em] transition-colors duration-300 ${
-              scrolled ? 'text-slate-900' : 'text-white'
-            }`}
-          >
-            Clinova
+          <a href="#home" className="inline-flex transition-opacity duration-300 hover:opacity-90">
+            <BrandMark size="md" tone={scrolled ? 'dark' : 'light'} />
           </a>
 
           <div className="hidden items-center gap-0.5 md:flex">
@@ -842,8 +838,8 @@ const Home = () => {
         <div className="mx-auto max-w-[1340px] px-5 sm:px-8 lg:px-10">
           <div className="flex flex-col gap-9 lg:flex-row lg:items-start lg:justify-between">
             <div>
-              <p className="text-[16px] font-semibold tracking-[-0.02em]">Clinova</p>
-              <p className="mt-2 max-w-[16rem] text-[13px] leading-[1.6] tracking-[-0.01em] text-white/40">
+              <BrandMark size="md" tone="light" />
+              <p className="mt-3 max-w-[16rem] text-[13px] leading-[1.6] tracking-[-0.01em] text-white/40">
                 Healthcare for Good. Today. Tomorrow. Always.
               </p>
             </div>

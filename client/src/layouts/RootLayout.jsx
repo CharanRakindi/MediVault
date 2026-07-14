@@ -24,6 +24,7 @@ import OfflineBanner from '../components/OfflineBanner';
 import OnboardingTour from '../components/OnboardingTour';
 import KeyboardShortcutsHelp from '../components/KeyboardShortcutsHelp';
 import ErrorBoundary from '../components/ErrorBoundary';
+import BrandMark from '../components/BrandMark';
 import { motion, AnimatePresence } from 'framer-motion';
 
 const RootLayout = () => {
@@ -202,12 +203,9 @@ const RootLayout = () => {
               <Menu className="h-5 w-5" />
             </button>
 
-            <Link
-              to="/"
-              className="text-[16px] font-semibold tracking-[-0.02em] text-slate-900 lg:hidden"
-            >
-              Clinova
-            </Link>
+            <div className="lg:hidden">
+              <BrandMark size="sm" tone="dark" asLink />
+            </div>
 
             <div className="hidden items-center gap-2 text-[12px] font-normal text-slate-500 lg:flex">
               <Clock className="h-3.5 w-3.5 text-slate-400" />
@@ -304,20 +302,13 @@ const RootLayout = () => {
             isSidebarOpen ? 'translate-x-0' : '-translate-x-full'
           )}
         >
-          <div className="hidden h-14 items-center justify-between border-b border-white/[0.06] px-6 lg:flex">
-            <Link
-              to="/"
-              className="text-[16px] font-semibold tracking-[-0.02em] text-white"
-            >
-              Clinova
-            </Link>
+          <div className="hidden h-14 items-center justify-between border-b border-white/[0.06] px-5 lg:flex">
+            <BrandMark size="sm" tone="light" asLink />
           </div>
 
           {/* Mobile drawer header */}
           <div className="flex h-14 items-center justify-between border-b border-white/[0.06] px-5 lg:hidden">
-            <span className="text-[16px] font-semibold tracking-[-0.02em] text-white">
-              Clinova
-            </span>
+            <BrandMark size="sm" tone="light" asLink />
             <button
               type="button"
               onClick={() => setIsSidebarOpen(false)}

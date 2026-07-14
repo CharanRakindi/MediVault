@@ -8,6 +8,7 @@ import { Loader2, ArrowRight } from 'lucide-react';
 import { toast } from 'sonner';
 import { motion } from 'framer-motion';
 import { roleHome } from '../utils/navigation';
+import BrandMark from '../components/BrandMark';
 
 const HERO_BG =
   'https://cdn.sceneai.art/Hero%20Section%20Video/802fa01f-44ef-4ab4-ac73-62015fe06eef.png';
@@ -48,9 +49,7 @@ const Login = () => {
         <div className="absolute inset-0 bg-gradient-to-r from-black/40 to-transparent" />
 
         <div className="relative z-10 flex w-full flex-col justify-between p-12 text-white">
-          <Link to="/" className="brand-mark text-white">
-            Clinova
-          </Link>
+          <BrandMark size="md" tone="light" asLink />
 
           <div className="max-w-md">
             <motion.h1
@@ -88,9 +87,7 @@ const Login = () => {
           className="mx-auto w-full max-w-[400px]"
         >
           <div className="mb-8 lg:hidden">
-            <Link to="/" className="brand-mark text-slate-900">
-              Clinova
-            </Link>
+            <BrandMark size="md" tone="dark" asLink />
           </div>
 
           <div>

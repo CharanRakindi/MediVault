@@ -41,6 +41,7 @@ export default {
       fontFamily: {
         sans: ['Inter', 'system-ui', 'sans-serif'],
         display: ['"Instrument Serif"', 'Georgia', 'serif'],
+        brand: ['Syne', 'Inter', 'system-ui', 'sans-serif'],
       },
       maxWidth: {
         content: '1340px',
