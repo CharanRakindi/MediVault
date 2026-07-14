@@ -11,6 +11,11 @@ import { cn } from '../utils/cn';
  * @param {boolean} showWordmark
  */
 const sizeMap = {
+  xs: {
+    gap: 'gap-1.5',
+    icon: 'h-6 w-6',
+    word: 'text-[13.5px]',
+  },
   sm: {
     gap: 'gap-2',
     icon: 'h-7 w-7',
@@ -28,8 +33,8 @@ const sizeMap = {
   },
   xl: {
     gap: 'gap-3.5',
-    icon: 'h-14 w-14',
-    word: 'text-[32px]',
+    icon: 'h-12 w-12 sm:h-14 sm:w-14',
+    word: 'text-[26px] sm:text-[32px]',
   },
 };
 

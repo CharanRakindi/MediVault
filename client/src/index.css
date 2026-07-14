@@ -8,6 +8,8 @@
 @layer base {
   html {
     @apply scroll-smooth;
+    -webkit-text-size-adjust: 100%;
+    text-size-adjust: 100%;
   }
 
   body {
@@ -16,6 +18,13 @@
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
     text-rendering: optimizeLegibility;
+    overflow-x: hidden;
+  }
+
+  /* Avoid horizontal scroll from full-bleed effects */
+  #root {
+    overflow-x: hidden;
+    min-height: 100%;
   }
 
   .font-display {
@@ -227,6 +236,29 @@
   }
   .marquee-track:hover {
     animation-play-state: paused;
+  }
+
+  /* Touch-friendly targets + safe areas (notches / home indicator) */
+  .safe-px {
+    padding-left: max(1.25rem, env(safe-area-inset-left));
+    padding-right: max(1.25rem, env(safe-area-inset-right));
+  }
+  .safe-pb {
+    padding-bottom: max(1.5rem, env(safe-area-inset-bottom));
+  }
+  .tap-target {
+    min-height: 44px;
+    min-width: 44px;
+  }
+}
+
+@media (max-width: 640px) {
+  .marquee-track {
+    animation-duration: 26s;
+  }
+  /* Ken Burns is heavy + can crop poorly on small screens */
+  .animate-kenburns {
+    animation: none;
   }
 }
 

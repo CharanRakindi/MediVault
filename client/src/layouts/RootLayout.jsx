@@ -192,19 +192,19 @@ const RootLayout = () => {
             : 'border-slate-200/40 bg-[#F7F6F3]/75 backdrop-blur-md'
         )}
       >
-        <div className="flex h-14 items-center justify-between px-4 sm:px-6 lg:px-8">
-          <div className="flex items-center gap-3">
+        <div className="flex h-14 items-center justify-between gap-2 px-3 sm:px-6 lg:px-8">
+          <div className="flex min-w-0 items-center gap-2 sm:gap-3">
             <button
               type="button"
               onClick={() => setIsSidebarOpen(!isSidebarOpen)}
-              className="rounded-xl p-2 text-slate-500 transition-colors hover:bg-slate-100 hover:text-slate-900 lg:hidden"
+              className="tap-target -ml-1 inline-flex items-center justify-center rounded-xl p-2 text-slate-500 transition-colors hover:bg-slate-100 hover:text-slate-900 lg:hidden"
               aria-label="Toggle menu"
             >
               <Menu className="h-5 w-5" />
             </button>
 
-            <div className="lg:hidden">
-              <BrandMark size="sm" tone="dark" asLink />
+            <div className="min-w-0 max-w-[11rem] truncate lg:hidden">
+              <BrandMark size="xs" tone="dark" asLink />
             </div>
 
             <div className="hidden items-center gap-2 text-[12px] font-normal text-slate-500 lg:flex">
@@ -227,7 +227,7 @@ const RootLayout = () => {
             </div>
           </div>
 
-          <div className="flex items-center gap-2 sm:gap-3">
+          <div className="flex shrink-0 items-center gap-1.5 sm:gap-3">
             <button
               id="search-trigger"
               type="button"
@@ -387,7 +387,7 @@ const RootLayout = () => {
         </aside>
 
         {/* Main */}
-        <main className="flex-1 overflow-y-auto bg-gradient-mesh">
+        <main className="flex-1 overflow-x-hidden overflow-y-auto bg-gradient-mesh">
           <AnimatePresence mode="wait">
             <motion.div
               key={location.pathname}
@@ -395,7 +395,7 @@ const RootLayout = () => {
               animate={{ opacity: 1, y: 0 }}
               exit={{ opacity: 0, y: -8 }}
               transition={{ duration: 0.28, ease: [0.16, 1, 0.3, 1] }}
-              className="mx-auto max-w-content p-4 sm:p-6 lg:p-8"
+              className="mx-auto max-w-content p-3 pb-[max(1rem,env(safe-area-inset-bottom))] sm:p-6 lg:p-8"
             >
               <ErrorBoundary>
                 <Outlet />

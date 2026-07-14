@@ -79,19 +79,19 @@ const Login = () => {
       </div>
 
       {/* Right — form */}
-      <div className="flex flex-1 flex-col justify-center px-6 py-12 sm:px-10 lg:px-16 xl:px-24">
+      <div className="flex flex-1 flex-col justify-center px-4 py-10 sm:px-10 sm:py-12 lg:px-16 xl:px-24">
         <motion.div
           initial={{ opacity: 0, y: 12 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.4, ease: [0.16, 1, 0.3, 1] }}
           className="mx-auto w-full max-w-[400px]"
         >
-          <div className="mb-8 lg:hidden">
-            <BrandMark size="md" tone="dark" asLink />
+          <div className="mb-6 lg:hidden">
+            <BrandMark size="sm" tone="dark" asLink />
           </div>
 
           <div>
-            <h2 className="text-[22px] font-medium tracking-[-0.025em] text-slate-900">
+            <h2 className="text-[20px] font-medium tracking-[-0.025em] text-slate-900 sm:text-[22px]">
               Sign in
             </h2>
             <p className="mt-1.5 text-[13.5px] font-normal leading-snug tracking-[-0.01em] text-slate-500">
@@ -99,7 +99,7 @@ const Login = () => {
             </p>
           </div>
 
-          <div className="card mt-8 p-7">
+          <div className="card mt-6 p-5 sm:mt-8 sm:p-7">
             <form className="space-y-5" onSubmit={handleSubmit(onSubmit)}>
               <div>
                 <label className="label">Email address</label>
