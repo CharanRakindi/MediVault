@@ -30,6 +30,110 @@ export const getUserById = async (req, res, next) => {
   }
 };
 
+// @desc    Update user fields (admin) — including email
+// @route   PATCH /api/v1/users/:id
+// @access  Private/Admin
+export const updateUser = async (req, res, next) => {
+  try {
+    const user = await User.findById(req.params.id);
+    if (!user) {
+      return res.status(404).json({ success: false, message: 'User not found' });
+    }
+
+    const { name, email, phone, dateOfBirth, gender, address, employeeId, isActive } = req.body;
+
+    if (name !== undefined) {
+      user.name = String(name)
+        .trim()
+        .replace(/^(dr\.?|doctor)\.?\s+/i, '')
+        .trim();
+    }
+
+    if (email !== undefined) {
+      const normalizedEmail = String(email || '').toLowerCase().trim();
+      if (!normalizedEmail.includes('@')) {
+        return res.status(400).json({ success: false, message: 'Invalid email address' });
+      }
+      // Staff / admin accounts must stay on hospital domain when currently staff
+      const staffRoles = ['doctor', 'receptionist', 'lab_technician', 'admin'];
+      if (staffRoles.includes(user.role) && !normalizedEmail.endsWith('@clinova.com')) {
+        return res.status(400).json({
+          success: false,
+          message: 'Staff accounts must use a @clinova.com email address',
+        });
+      }
+      if (user.role === 'patient' && normalizedEmail.endsWith('@clinova.com')) {
+        return res.status(400).json({
+          success: false,
+          message: '@clinova.com emails are reserved for hospital staff',
+        });
+      }
+      const taken = await User.findOne({
+        email: normalizedEmail,
+        _id: { $ne: user._id },
+      });
+      if (taken) {
+        return res.status(400).json({ success: false, message: 'Email already in use' });
+      }
+      user.email = normalizedEmail;
+    }
+
+    if (phone !== undefined) user.phone = String(phone || '').trim();
+    if (employeeId !== undefined) user.employeeId = String(employeeId || '').trim();
+    if (typeof isActive === 'boolean') user.isActive = isActive;
+
+    if (dateOfBirth !== undefined) {
+      if (!dateOfBirth) user.dateOfBirth = undefined;
+      else {
+        const d = new Date(dateOfBirth);
+        if (Number.isNaN(d.getTime())) {
+          return res.status(400).json({ success: false, message: 'Invalid date of birth' });
+        }
+        user.dateOfBirth = d;
+      }
+    }
+
+    if (gender !== undefined) {
+      if (!gender) user.gender = undefined;
+      else if (['male', 'female', 'other', 'prefer_not_to_say'].includes(gender)) {
+        user.gender = gender;
+      }
+    }
+
+    if (address !== undefined && typeof address === 'object') {
+      user.address = {
+        street: String(address.street || '').trim(),
+        city: String(address.city || '').trim(),
+        state: String(address.state || '').trim(),
+        zipCode: String(address.zipCode || '').trim(),
+        country: String(address.country || '').trim(),
+      };
+    }
+
+    await user.save();
+
+    await logAction(
+      req.user._id,
+      req.user.role,
+      'UPDATE',
+      'User',
+      user._id,
+      req.ip,
+      req.headers['user-agent'],
+      { action: 'ADMIN_UPDATE_USER', emailChanged: email !== undefined }
+    );
+
+    const safe = await User.findById(user._id).select('-password');
+    res.status(200).json({
+      success: true,
+      message: 'User updated successfully',
+      data: safe,
+    });
+  } catch (error) {
+    next(error);
+  }
+};
+
 // @desc    Update user status (activate/deactivate)
 // @route   PATCH /api/v1/users/:id/status
 // @access  Private/Admin

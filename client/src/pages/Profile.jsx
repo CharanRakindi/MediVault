@@ -1,43 +1,109 @@
+import { useEffect, useMemo, useState } from 'react';
 import { useAuth } from '../contexts/AuthContext';
-import { User, Mail, Shield, Phone, Calendar, MapPin, Activity } from 'lucide-react';
+import {
+  User,
+  Mail,
+  Shield,
+  Phone,
+  Calendar,
+  MapPin,
+  Activity,
+  Save,
+  Loader2,
+  Lock,
+  Info,
+} from 'lucide-react';
 import { format } from 'date-fns';
+import { toast } from 'sonner';
+import api from '../api/axios';
+
+function formatAddress(address) {
+  if (!address) return '';
+  if (typeof address === 'string') return address;
+  return [address.street, address.city, address.state, address.zipCode, address.country]
+    .filter(Boolean)
+    .join(', ');
+}
+
+function toDateInput(value) {
+  if (!value) return '';
+  try {
+    return format(new Date(value), 'yyyy-MM-dd');
+  } catch {
+    return '';
+  }
+}
 
 export default function Profile() {
-  const { user } = useAuth();
+  const { user, fetchUser } = useAuth();
+  const [saving, setSaving] = useState(false);
+  const [form, setForm] = useState({
+    name: '',
+    phone: '',
+    dateOfBirth: '',
+    gender: '',
+    street: '',
+    city: '',
+    state: '',
+    zipCode: '',
+    country: '',
+  });
+
+  useEffect(() => {
+    if (!user) return;
+    setForm({
+      name: user.name || '',
+      phone: user.phone || '',
+      dateOfBirth: toDateInput(user.dateOfBirth),
+      gender: user.gender || '',
+      street: user.address?.street || '',
+      city: user.address?.city || '',
+      state: user.address?.state || '',
+      zipCode: user.address?.zipCode || '',
+      country: user.address?.country || '',
+    });
+  }, [user]);
+
+  const isStaff = useMemo(
+    () =>
+      user &&
+      ['doctor', 'admin', 'receptionist', 'lab_technician'].includes(user.role),
+    [user]
+  );
 
   if (!user) return null;
 
-  const fields = [
-    { icon: User, label: 'Full name', value: user.name },
-    { icon: Mail, label: 'Email address', value: user.email },
-    {
-      icon: Shield,
-      label: 'Authorized role',
-      value: (
-        <span className="badge badge-neutral mt-0.5 uppercase tracking-wider">
-          {user.role.replace('_', ' ')}
-        </span>
-      ),
-    },
-    { icon: Phone, label: 'Phone', value: user.phone || 'Not configured' },
-    {
-      icon: Calendar,
-      label: 'Date of birth',
-      value: user.dateOfBirth
-        ? format(new Date(user.dateOfBirth), 'MMMM dd, yyyy')
-        : 'Not configured',
-    },
-    {
-      icon: Activity,
-      label: 'Account status',
-      value: user.isActive === false ? 'Inactive' : 'Active',
-    },
-    {
-      icon: MapPin,
-      label: 'Address',
-      value: user.address || 'Not configured',
-    },
-  ];
+  const setField = (key, value) => setForm((prev) => ({ ...prev, [key]: value }));
+
+  const handleSave = async (e) => {
+    e.preventDefault();
+    if (!form.name.trim() || form.name.trim().length < 2) {
+      toast.error('Name must be at least 2 characters');
+      return;
+    }
+    try {
+      setSaving(true);
+      await api.patch('/auth/profile', {
+        name: form.name.trim(),
+        phone: form.phone.trim(),
+        dateOfBirth: form.dateOfBirth || null,
+        gender: form.gender || '',
+        address: {
+          street: form.street.trim(),
+          city: form.city.trim(),
+          state: form.state.trim(),
+          zipCode: form.zipCode.trim(),
+          country: form.country.trim(),
+        },
+      });
+      await fetchUser();
+      toast.success('Profile updated');
+    } catch (err) {
+      toast.error(err.response?.data?.message || 'Failed to update profile');
+    } finally {
+      setSaving(false);
+    }
+  };
 
   return (
     <div className="workspace">
@@ -45,57 +111,210 @@ export default function Profile() {
         <div>
           <h1 className="page-title">Account profile</h1>
           <p className="page-subtitle">
-            Your personal information and access role
+            Update your personal details. Email changes require an administrator.
           </p>
         </div>
       </div>
 
       <div className="grid grid-cols-1 gap-6 lg:grid-cols-3">
-        <div className="space-y-6 lg:col-span-2">
-          <div className="card space-y-6 p-6">
-            <h3 className="section-title border-b border-slate-100 pb-3">
-              Personal details
-            </h3>
+        <form onSubmit={handleSave} className="space-y-6 lg:col-span-2">
+          <div className="card space-y-6 p-5 sm:p-6">
+            <div className="flex flex-col gap-2 border-b border-slate-100 pb-3 sm:flex-row sm:items-center sm:justify-between">
+              <h3 className="section-title">Personal details</h3>
+              <button type="submit" disabled={saving} className="btn btn-primary btn-sm self-start sm:self-auto">
+                {saving ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <Save className="h-3.5 w-3.5" />}
+                {saving ? 'Saving…' : 'Save changes'}
+              </button>
+            </div>
 
-            <div className="grid grid-cols-1 gap-5 md:grid-cols-2">
-              {fields.map(({ icon: Icon, label, value }) => (
-                <div key={label} className="flex items-center gap-3">
-                  <div className="rounded-xl border border-slate-100 bg-slate-50 p-2.5 text-slate-400">
-                    <Icon className="h-4.5 w-4.5" strokeWidth={1.75} />
-                  </div>
-                  <div>
-                    <p className="text-[11px] font-medium uppercase tracking-wider text-slate-400">
-                      {label}
-                    </p>
-                    {typeof value === 'string' ? (
-                      <p className="mt-0.5 text-[13.5px] font-medium text-slate-800">
-                        {value}
-                      </p>
-                    ) : (
-                      value
-                    )}
-                  </div>
+            <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
+              <div className="md:col-span-2">
+                <label className="label flex items-center gap-1.5">
+                  <User className="h-3.5 w-3.5 text-slate-400" />
+                  Full name
+                </label>
+                <input
+                  className="input"
+                  value={form.name}
+                  onChange={(e) => setField('name', e.target.value)}
+                  required
+                  minLength={2}
+                  autoComplete="name"
+                />
+              </div>
+
+              <div className="md:col-span-2">
+                <label className="label flex items-center gap-1.5">
+                  <Mail className="h-3.5 w-3.5 text-slate-400" />
+                  Email address
+                </label>
+                <div className="relative">
+                  <input
+                    className="input cursor-not-allowed bg-slate-50 pr-10 text-slate-500"
+                    value={user.email}
+                    disabled
+                    readOnly
+                  />
+                  <Lock className="pointer-events-none absolute right-3 top-1/2 h-3.5 w-3.5 -translate-y-1/2 text-slate-400" />
                 </div>
-              ))}
+                <p className="mt-1.5 flex items-start gap-1.5 text-[12px] leading-snug text-slate-400">
+                  <Info className="mt-0.5 h-3.5 w-3.5 shrink-0" />
+                  {isStaff
+                    ? 'Staff email can only be changed by an administrator.'
+                    : 'Contact support or an admin if you need to change your email.'}
+                </p>
+              </div>
+
+              <div>
+                <label className="label flex items-center gap-1.5">
+                  <Phone className="h-3.5 w-3.5 text-slate-400" />
+                  Phone
+                </label>
+                <input
+                  className="input"
+                  value={form.phone}
+                  onChange={(e) => setField('phone', e.target.value)}
+                  placeholder="+1 555 000 0000"
+                  autoComplete="tel"
+                />
+              </div>
+
+              <div>
+                <label className="label flex items-center gap-1.5">
+                  <Calendar className="h-3.5 w-3.5 text-slate-400" />
+                  Date of birth
+                </label>
+                <input
+                  type="date"
+                  className="input"
+                  value={form.dateOfBirth}
+                  max={new Date().toISOString().split('T')[0]}
+                  onChange={(e) => setField('dateOfBirth', e.target.value)}
+                />
+              </div>
+
+              <div>
+                <label className="label">Gender</label>
+                <select
+                  className="input appearance-none"
+                  value={form.gender}
+                  onChange={(e) => setField('gender', e.target.value)}
+                >
+                  <option value="">Prefer not to say</option>
+                  <option value="male">Male</option>
+                  <option value="female">Female</option>
+                  <option value="other">Other</option>
+                  <option value="prefer_not_to_say">Prefer not to say</option>
+                </select>
+              </div>
+
+              <div>
+                <label className="label flex items-center gap-1.5">
+                  <Shield className="h-3.5 w-3.5 text-slate-400" />
+                  Role
+                </label>
+                <input
+                  className="input cursor-not-allowed bg-slate-50 capitalize text-slate-500"
+                  value={String(user.role || '').replace(/_/g, ' ')}
+                  disabled
+                  readOnly
+                />
+              </div>
             </div>
           </div>
-        </div>
+
+          <div className="card space-y-5 p-5 sm:p-6">
+            <h3 className="section-title border-b border-slate-100 pb-3">
+              <span className="inline-flex items-center gap-2">
+                <MapPin className="h-4 w-4 text-slate-400" />
+                Address
+              </span>
+            </h3>
+            <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
+              <div className="md:col-span-2">
+                <label className="label">Street</label>
+                <input
+                  className="input"
+                  value={form.street}
+                  onChange={(e) => setField('street', e.target.value)}
+                  placeholder="Street address"
+                  autoComplete="street-address"
+                />
+              </div>
+              <div>
+                <label className="label">City</label>
+                <input
+                  className="input"
+                  value={form.city}
+                  onChange={(e) => setField('city', e.target.value)}
+                  autoComplete="address-level2"
+                />
+              </div>
+              <div>
+                <label className="label">State / region</label>
+                <input
+                  className="input"
+                  value={form.state}
+                  onChange={(e) => setField('state', e.target.value)}
+                  autoComplete="address-level1"
+                />
+              </div>
+              <div>
+                <label className="label">ZIP / postal code</label>
+                <input
+                  className="input"
+                  value={form.zipCode}
+                  onChange={(e) => setField('zipCode', e.target.value)}
+                  autoComplete="postal-code"
+                />
+              </div>
+              <div>
+                <label className="label">Country</label>
+                <input
+                  className="input"
+                  value={form.country}
+                  onChange={(e) => setField('country', e.target.value)}
+                  autoComplete="country-name"
+                />
+              </div>
+            </div>
+          </div>
+        </form>
 
         <div className="card flex flex-col items-center p-6 text-center">
           <div className="mb-4 flex h-16 w-16 items-center justify-center rounded-full bg-slate-900 text-[22px] font-medium text-white shadow-premium">
             {user.name?.charAt(0).toUpperCase()}
           </div>
-          <h3 className="text-[16px] font-medium text-slate-900">{user.name}</h3>
+          <h3 className="text-[16px] font-medium tracking-[-0.02em] text-slate-900">{user.name}</h3>
           <p className="mt-1 text-[13px] font-normal text-slate-500">{user.email}</p>
           <span className="badge badge-neutral mt-3 uppercase tracking-wider">
-            {user.role.replace('_', ' ')}
+            {String(user.role || '').replace(/_/g, ' ')}
           </span>
-          <p className="mt-6 text-[12px] font-normal leading-relaxed text-slate-400">
-            Member since{' '}
-            {user.createdAt
-              ? format(new Date(user.createdAt), 'MMM yyyy')
-              : '—'}
-          </p>
+
+          <div className="mt-6 w-full space-y-3 border-t border-slate-100 pt-5 text-left">
+            <div className="meta-row">
+              <span className="meta-label inline-flex items-center gap-1.5">
+                <Activity className="h-3.5 w-3.5" /> Status
+              </span>
+              <span className="meta-value">
+                {user.isActive === false ? 'Inactive' : 'Active'}
+              </span>
+            </div>
+            <div className="meta-row">
+              <span className="meta-label">Member since</span>
+              <span className="meta-value">
+                {user.createdAt ? format(new Date(user.createdAt), 'MMM yyyy') : '—'}
+              </span>
+            </div>
+            {formatAddress(user.address) && (
+              <div className="meta-row">
+                <span className="meta-label">Address</span>
+                <span className="meta-value max-w-[60%] text-[12.5px] leading-snug">
+                  {formatAddress(user.address)}
+                </span>
+              </div>
+            )}
+          </div>
         </div>
       </div>
     </div>

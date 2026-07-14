@@ -30,3 +30,28 @@ export const updatePasswordSchema = z.object({
     newPassword: z.string().min(8, 'New password must be at least 8 characters'),
   }),
 });
+
+const addressSchema = z
+  .object({
+    street: z.string().max(200).optional().or(z.literal('')),
+    city: z.string().max(100).optional().or(z.literal('')),
+    state: z.string().max(100).optional().or(z.literal('')),
+    zipCode: z.string().max(20).optional().or(z.literal('')),
+    country: z.string().max(100).optional().or(z.literal('')),
+  })
+  .optional();
+
+/** Self-service profile update — never accepts email or role */
+export const updateProfileSchema = z.object({
+  body: z.object({
+    name: z.string().min(2, 'Name must be at least 2 characters').max(120).optional(),
+    phone: z.string().max(40).optional().or(z.literal('')),
+    dateOfBirth: z
+      .union([z.string().min(1), z.null(), z.literal('')])
+      .optional(),
+    gender: z
+      .enum(['male', 'female', 'other', 'prefer_not_to_say', ''])
+      .optional(),
+    address: addressSchema,
+  }),
+});

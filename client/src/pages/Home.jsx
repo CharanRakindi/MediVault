@@ -314,9 +314,8 @@ const Home = () => {
             className="min-w-0 shrink transition-opacity duration-300 hover:opacity-90"
             onClick={() => setMenuOpen(false)}
           >
-            {/* Compact mark on phones so it never collides with the menu button */}
             <span className="sm:hidden">
-              <BrandMark size="xs" tone={navSolid ? 'dark' : 'light'} />
+              <BrandMark size="sm" tone={navSolid ? 'dark' : 'light'} />
             </span>
             <span className="hidden sm:inline-flex">
               <BrandMark size="md" tone={navSolid ? 'dark' : 'light'} />

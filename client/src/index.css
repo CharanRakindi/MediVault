@@ -102,10 +102,10 @@
     @apply flex flex-col md:flex-row justify-between items-start md:items-center gap-4 pb-6 border-b border-slate-200/60;
   }
   .page-title {
-    @apply text-[22px] font-medium tracking-[-0.025em] text-slate-900;
+    @apply text-[20px] sm:text-[22px] font-medium tracking-[-0.025em] text-slate-900;
   }
   .page-subtitle {
-    @apply text-[13.5px] font-normal tracking-[-0.01em] text-slate-500 mt-1 leading-snug;
+    @apply text-[13px] sm:text-[13.5px] font-normal tracking-[-0.01em] text-slate-500 mt-1 leading-snug;
   }
   .section-title {
     @apply text-[14px] font-medium tracking-[-0.015em] text-slate-800;
@@ -116,13 +116,23 @@
 
   /* —— Workspace patterns —— */
   .workspace {
-    @apply space-y-6 pb-10 animate-fade-in;
+    @apply space-y-5 sm:space-y-6 pb-10 animate-fade-in;
   }
   .panel-title {
     @apply text-[14px] font-medium tracking-[-0.015em] text-slate-800;
   }
   .panel-meta {
     @apply text-[12px] font-normal tracking-[-0.01em] text-slate-400 mt-0.5;
+  }
+  /* Prefer these over ad-hoc font-semibold/font-bold in workspace UI */
+  .ui-label {
+    @apply text-[11px] font-medium uppercase tracking-wider text-slate-400;
+  }
+  .ui-body {
+    @apply text-[13px] font-normal tracking-[-0.01em] text-slate-600 leading-snug;
+  }
+  .ui-emphasis {
+    @apply text-[13px] font-medium tracking-[-0.01em] text-slate-800;
   }
   .list-row {
     @apply flex items-center justify-between gap-3 rounded-xl border border-slate-200/70 bg-[#F7F6F3]/60 p-3.5 transition-colors hover:border-slate-300 hover:bg-white;

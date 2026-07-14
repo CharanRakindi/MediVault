@@ -3,7 +3,7 @@ import api from '../../api/axios';
 import StatCard from '../../components/StatCard';
 import InteractiveCalendar from '../../components/InteractiveCalendar';
 import { SkeletonCard } from '../../components/SkeletonLoader';
-import { Calendar, Users, CheckCircle, Clock, ChevronRight, PenTool, Check, ToggleLeft, ToggleRight, FlaskConical, Plus, X, RotateCcw } from 'lucide-react';
+import { Calendar, Users, CheckCircle, Clock, ChevronRight, PenTool, Check, ToggleLeft, ToggleRight, FlaskConical, Plus, X, RotateCcw, CheckCheck } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { useState, useEffect } from 'react';
 import { toast } from 'sonner';
@@ -107,14 +107,22 @@ const DoctorDashboard = () => {
   });
 
   const updateStatus = useMutation({
-    mutationFn: async ({ id, status }) => {
-      const res = await api.patch(`/appointments/${id}/status`, { status });
+    mutationFn: async ({ id, status, cancellationReason }) => {
+      const res = await api.patch(`/appointments/${id}/status`, {
+        status,
+        ...(cancellationReason ? { cancellationReason } : {}),
+      });
       return res.data.data;
     },
     onSuccess: (_, { status }) => {
       queryClient.invalidateQueries({ queryKey: ['doctorAppointments'] });
       queryClient.invalidateQueries({ queryKey: ['doctorStats'] });
-      toast.success(`Appointment marked as ${status}`);
+      const labels = {
+        confirmed: 'Appointment accepted',
+        cancelled: 'Appointment declined',
+        completed: 'Consultation completed',
+      };
+      toast.success(labels[status] || `Appointment marked as ${status}`);
     },
     onError: (error) => {
       toast.error(error.response?.data?.message || 'Failed to update status');
@@ -124,11 +132,34 @@ const DoctorDashboard = () => {
   if (isLoading) return <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 p-4"><SkeletonCard /><SkeletonCard /><SkeletonCard /><SkeletonCard /></div>;
 
   const todayStr = format(new Date(), 'yyyy-MM-dd');
-  
+  const startOfToday = new Date();
+  startOfToday.setHours(0, 0, 0, 0);
+
   const todayAppointments = allAppointments?.filter(a => {
     const aptDate = format(new Date(a.appointmentDate), 'yyyy-MM-dd');
     return aptDate === todayStr;
   }) || [];
+
+  // Patient requests waiting for doctor accept (today or future)
+  const pendingRequests =
+    allAppointments
+      ?.filter((a) => {
+        if (a.status !== 'requested') return false;
+        const d = new Date(a.appointmentDate);
+        d.setHours(0, 0, 0, 0);
+        return d >= startOfToday;
+      })
+      .sort((a, b) => new Date(a.appointmentDate) - new Date(b.appointmentDate)) || [];
+
+  // Confirmed future visits (after today)
+  const upcomingConfirmed =
+    allAppointments
+      ?.filter((a) => {
+        if (a.status !== 'confirmed') return false;
+        const aptDate = format(new Date(a.appointmentDate), 'yyyy-MM-dd');
+        return aptDate > todayStr;
+      })
+      .sort((a, b) => new Date(a.appointmentDate) - new Date(b.appointmentDate)) || [];
 
   const handleSelectEvent = (event) => {
     const apt = event.resource;
@@ -147,8 +178,8 @@ const DoctorDashboard = () => {
         <div>
           <h1 className="page-title">{formatDoctorName(user?.name)}</h1>
           <p className="page-subtitle">
-            {todayAppointments.length} consultations today ·{' '}
-            {todayAppointments.filter((a) => a.status !== 'completed').length} active
+            {todayAppointments.length} today · {pendingRequests.length} pending request
+            {pendingRequests.length === 1 ? '' : 's'} · {upcomingConfirmed.length} upcoming
           </p>
         </div>
 
@@ -218,11 +249,69 @@ const DoctorDashboard = () => {
 
       <div className="grid grid-cols-1 gap-5 lg:grid-cols-3">
         <div className="space-y-5 lg:col-span-1">
+          {/* Pending accept/decline (includes future dates) */}
+          <div id="pending-requests" className="card space-y-4 p-5">
+            <div>
+              <h3 className="panel-title flex items-center gap-2">
+                <CheckCheck className="h-4 w-4 text-slate-400" strokeWidth={1.75} />
+                Pending requests
+              </h3>
+              <p className="panel-meta">Accept or decline patient bookings (today &amp; future)</p>
+            </div>
+            <div className="max-h-[280px] space-y-2 overflow-y-auto pr-1">
+              {pendingRequests.length === 0 ? (
+                <div className="empty-state py-6">No open requests</div>
+              ) : (
+                pendingRequests.map((apt) => (
+                  <div key={apt._id} className="list-row flex-col items-stretch gap-2.5 sm:flex-row sm:items-center">
+                    <div className="min-w-0 flex-1">
+                      <p className="truncate text-[13px] font-medium tracking-[-0.01em] text-slate-800">
+                        {apt.patient?.name}
+                      </p>
+                      <p className="mt-0.5 text-[11.5px] text-slate-400">
+                        {format(new Date(apt.appointmentDate), 'MMM dd, yyyy')} · {apt.timeSlot}
+                      </p>
+                      <p className="mt-0.5 line-clamp-1 text-[11.5px] text-slate-500">{apt.reason}</p>
+                    </div>
+                    <div className="flex shrink-0 gap-1.5">
+                      <button
+                        type="button"
+                        onClick={() => updateStatus.mutate({ id: apt._id, status: 'confirmed' })}
+                        disabled={updateStatus.isPending}
+                        className="btn btn-sm border border-emerald-200 bg-emerald-50 text-emerald-700 hover:bg-emerald-100"
+                        title="Accept appointment"
+                      >
+                        <Check className="h-3.5 w-3.5" />
+                        Accept
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() =>
+                          updateStatus.mutate({
+                            id: apt._id,
+                            status: 'cancelled',
+                            cancellationReason: 'Declined by doctor',
+                          })
+                        }
+                        disabled={updateStatus.isPending}
+                        className="btn btn-sm border border-rose-200 bg-rose-50 text-rose-700 hover:bg-rose-100"
+                        title="Decline appointment"
+                      >
+                        <X className="h-3.5 w-3.5" />
+                        Decline
+                      </button>
+                    </div>
+                  </div>
+                ))
+              )}
+            </div>
+          </div>
+
           <div id="consultations-queue" className="card space-y-4 p-5">
             <div>
               <h3 className="panel-title flex items-center gap-2">
                 <Clock className="h-4 w-4 text-slate-400" strokeWidth={1.75} />
-                Consultation queue
+                Today&apos;s queue
               </h3>
               <p className="panel-meta">Prioritized by time slot</p>
             </div>
@@ -246,18 +335,31 @@ const DoctorDashboard = () => {
                       <div className="min-w-0">
                         <p
                           className={cn(
-                            'truncate text-[13px] font-medium text-slate-800',
+                            'truncate text-[13px] font-medium tracking-[-0.01em] text-slate-800',
                             apt.status === 'completed' && 'line-through text-slate-400'
                           )}
                         >
                           {apt.patient?.name}
                         </p>
                         <p className="mt-0.5 text-[11.5px] text-slate-400">
-                          {apt.timeSlot} · {apt.reason}
+                          {apt.timeSlot} · <span className="capitalize">{apt.status}</span>
+                          {apt.reason ? ` · ${apt.reason}` : ''}
                         </p>
                       </div>
                       <div className="flex shrink-0 gap-1">
-                        {apt.status !== 'completed' && (
+                        {apt.status === 'requested' && (
+                          <button
+                            type="button"
+                            onClick={() =>
+                              updateStatus.mutate({ id: apt._id, status: 'confirmed' })
+                            }
+                            className="rounded-lg p-1.5 text-sky-600 transition-colors hover:bg-sky-50"
+                            title="Accept request"
+                          >
+                            <CheckCheck className="h-3.5 w-3.5" />
+                          </button>
+                        )}
+                        {['requested', 'confirmed'].includes(apt.status) && (
                           <button
                             type="button"
                             onClick={() =>
@@ -283,14 +385,43 @@ const DoctorDashboard = () => {
             </div>
           </div>
 
+          {upcomingConfirmed.length > 0 && (
+            <div className="card space-y-4 p-5">
+              <div>
+                <h3 className="panel-title flex items-center gap-2">
+                  <Calendar className="h-4 w-4 text-slate-400" strokeWidth={1.75} />
+                  Upcoming confirmed
+                </h3>
+                <p className="panel-meta">Future visits you have accepted</p>
+              </div>
+              <div className="max-h-[220px] space-y-2 overflow-y-auto pr-1">
+                {upcomingConfirmed.slice(0, 12).map((apt) => (
+                  <div key={apt._id} className="list-row">
+                    <div className="min-w-0">
+                      <p className="truncate text-[13px] font-medium tracking-[-0.01em] text-slate-800">
+                        {apt.patient?.name}
+                      </p>
+                      <p className="mt-0.5 text-[11.5px] text-slate-400">
+                        {format(new Date(apt.appointmentDate), 'MMM dd, yyyy')} · {apt.timeSlot}
+                      </p>
+                    </div>
+                    <span className="badge badge-success shrink-0 uppercase tracking-wider">
+                      confirmed
+                    </span>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
+
           {/* Quick Notes Pad */}
-          <div className="card p-5 space-y-4">
+          <div className="card space-y-4 p-5">
             <div>
-              <h3 className="text-[14.5px] font-semibold text-slate-800 flex items-center gap-2">
-                <PenTool className="w-4 h-4 text-primary-500" strokeWidth={2.25} />
-                Quick Clinical Notes
+              <h3 className="panel-title flex items-center gap-2">
+                <PenTool className="h-4 w-4 text-slate-400" strokeWidth={1.75} />
+                Quick clinical notes
               </h3>
-              <p className="text-[11.5px] font-medium text-slate-400 mt-0.5">Jot down quick updates. Saved locally.</p>
+              <p className="panel-meta">Jot down quick updates. Saved locally.</p>
             </div>
             <textarea
               rows={4}
@@ -305,11 +436,11 @@ const DoctorDashboard = () => {
           <div className="card space-y-4 p-5">
             <div className="flex items-center justify-between gap-2">
               <div>
-                <h3 className="flex items-center gap-2 text-[14.5px] font-semibold text-slate-800">
+                <h3 className="panel-title flex items-center gap-2">
                   <FlaskConical className="h-4 w-4 text-slate-400" />
                   Lab orders
                 </h3>
-                <p className="mt-0.5 text-[11.5px] font-medium text-slate-400">
+                <p className="panel-meta">
                   Recent requests — re-order if needed
                 </p>
               </div>

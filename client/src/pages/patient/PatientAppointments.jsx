@@ -54,7 +54,7 @@ const PatientAppointments = () => {
       queryClient.invalidateQueries({ queryKey: ['myAppointments'] });
       setIsModalOpen(false);
       setFormData({ doctor: '', appointmentDate: '', timeSlot: '', reason: '' });
-      toast.success('Appointment booked successfully');
+      toast.success('Appointment requested — waiting for doctor to accept');
     },
     onError: (error) => {
       toast.error(error.response?.data?.message || 'Failed to book appointment');
@@ -82,6 +82,14 @@ const PatientAppointments = () => {
     e.preventDefault();
     if (!formData.doctor || !formData.appointmentDate || !formData.timeSlot || !formData.reason) {
       toast.error('Please fill all fields');
+      return;
+    }
+    const day = new Date(formData.appointmentDate);
+    const start = new Date();
+    start.setHours(0, 0, 0, 0);
+    day.setHours(0, 0, 0, 0);
+    if (day < start) {
+      toast.error('Please choose today or a future date');
       return;
     }
     createAppointment.mutate(formData);
@@ -363,9 +371,12 @@ const PatientAppointments = () => {
                   ) : (
                     <CheckCircle className="h-3.5 w-3.5" />
                   )}
-                  {createAppointment.isPending ? 'Confirming…' : 'Confirm booking'}
+                  {createAppointment.isPending ? 'Requesting…' : 'Request appointment'}
                 </button>
               </div>
+              <p className="text-center text-[12px] leading-snug text-slate-400">
+                You can book today or a future date. Your doctor will accept or decline the request.
+              </p>
             </form>
           </div>
         </div>

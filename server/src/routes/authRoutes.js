@@ -1,8 +1,21 @@
 import express from 'express';
-import { register, login, logout, refresh, getMe, updatePassword } from '../controllers/authController.js';
+import {
+  register,
+  login,
+  logout,
+  refresh,
+  getMe,
+  updatePassword,
+  updateProfile,
+} from '../controllers/authController.js';
 import { authenticate } from '../middleware/authMiddleware.js';
 import { validateRequest } from '../middleware/validateRequest.js';
-import { registerSchema, loginSchema, updatePasswordSchema } from '../validators/authValidators.js';
+import {
+  registerSchema,
+  loginSchema,
+  updatePasswordSchema,
+  updateProfileSchema,
+} from '../validators/authValidators.js';
 import rateLimit from 'express-rate-limit';
 
 const router = express.Router();
@@ -18,6 +31,7 @@ router.post('/login', authLimiter, validateRequest(loginSchema), login);
 router.post('/logout', authenticate, logout);
 router.post('/refresh', refresh);
 router.get('/me', authenticate, getMe);
+router.patch('/profile', authenticate, validateRequest(updateProfileSchema), updateProfile);
 router.patch('/update-password', authenticate, validateRequest(updatePasswordSchema), updatePassword);
 
 export default router;

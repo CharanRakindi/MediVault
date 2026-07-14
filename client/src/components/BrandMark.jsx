@@ -12,19 +12,19 @@ import { cn } from '../utils/cn';
  */
 const sizeMap = {
   xs: {
-    gap: 'gap-1.5',
-    icon: 'h-6 w-6',
-    word: 'text-[13.5px]',
-  },
-  sm: {
     gap: 'gap-2',
     icon: 'h-7 w-7',
     word: 'text-[15px]',
   },
+  sm: {
+    gap: 'gap-2',
+    icon: 'h-8 w-8',
+    word: 'text-[16px]',
+  },
   md: {
     gap: 'gap-2.5',
-    icon: 'h-8 w-8',
-    word: 'text-[17px]',
+    icon: 'h-8 w-8 sm:h-9 sm:w-9',
+    word: 'text-[17px] sm:text-[18px]',
   },
   lg: {
     gap: 'gap-3',

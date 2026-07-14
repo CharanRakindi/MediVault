@@ -55,6 +55,22 @@ export const createAppointment = async (req, res, next) => {
       return res.status(400).json({ success: false, message: 'All fields are required' });
     }
 
+    // Allow today and future dates; reject past calendar days
+    const day = new Date(appointmentDate);
+    if (Number.isNaN(day.getTime())) {
+      return res.status(400).json({ success: false, message: 'Invalid appointment date' });
+    }
+    const startOfToday = new Date();
+    startOfToday.setHours(0, 0, 0, 0);
+    const apptDay = new Date(day);
+    apptDay.setHours(0, 0, 0, 0);
+    if (apptDay < startOfToday) {
+      return res.status(400).json({
+        success: false,
+        message: 'Appointments can only be booked for today or a future date',
+      });
+    }
+
     const patientUser = await User.findById(patientId);
     if (!patientUser || patientUser.role !== 'patient') {
       return res.status(400).json({ success: false, message: 'Invalid patient' });
@@ -170,8 +186,14 @@ export const updateAppointmentStatus = async (req, res, next) => {
 
     await appointment.save();
 
+    const patientMessages = {
+      confirmed: 'Your appointment request was accepted by the doctor',
+      cancelled: 'Your appointment was cancelled',
+      completed: 'Your appointment was marked completed',
+      'no-show': 'Your appointment was marked as no-show',
+    };
     sendToUser(appointment.patient, 'notification', {
-      message: `Your appointment status was updated to ${status}`,
+      message: patientMessages[status] || `Your appointment status was updated to ${status}`,
       timestamp: new Date(),
     });
 

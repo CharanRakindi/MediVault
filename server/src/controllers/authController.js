@@ -207,6 +207,97 @@ export const getMe = async (req, res, next) => {
   }
 };
 
+// @desc    Update own basic profile (name, phone, DOB, gender, address)
+// @route   PATCH /api/v1/auth/profile
+// @access  Private — email is never changeable here (admin only)
+export const updateProfile = async (req, res, next) => {
+  try {
+    const user = await User.findById(req.user._id);
+    if (!user) {
+      return res.status(404).json({ success: false, message: 'User not found' });
+    }
+
+    // Explicitly reject email / role attempts from clients
+    if (req.body.email !== undefined || req.body.role !== undefined) {
+      return res.status(403).json({
+        success: false,
+        message: 'Email and role can only be changed by an administrator',
+      });
+    }
+
+    const { name, phone, dateOfBirth, gender, address } = req.body;
+
+    if (name !== undefined) {
+      const cleanName = String(name)
+        .trim()
+        .replace(/^(dr\.?|doctor)\.?\s+/i, '')
+        .trim();
+      if (cleanName.length < 2) {
+        return res.status(400).json({ success: false, message: 'Name must be at least 2 characters' });
+      }
+      user.name = cleanName;
+    }
+
+    if (phone !== undefined) {
+      user.phone = String(phone || '').trim();
+    }
+
+    if (dateOfBirth !== undefined) {
+      if (!dateOfBirth) {
+        user.dateOfBirth = undefined;
+      } else {
+        const d = new Date(dateOfBirth);
+        if (Number.isNaN(d.getTime())) {
+          return res.status(400).json({ success: false, message: 'Invalid date of birth' });
+        }
+        user.dateOfBirth = d;
+      }
+    }
+
+    if (gender !== undefined) {
+      if (!gender) {
+        user.gender = undefined;
+      } else if (['male', 'female', 'other', 'prefer_not_to_say'].includes(gender)) {
+        user.gender = gender;
+      } else {
+        return res.status(400).json({ success: false, message: 'Invalid gender value' });
+      }
+    }
+
+    if (address !== undefined && typeof address === 'object') {
+      user.address = {
+        street: String(address.street || '').trim(),
+        city: String(address.city || '').trim(),
+        state: String(address.state || '').trim(),
+        zipCode: String(address.zipCode || '').trim(),
+        country: String(address.country || '').trim(),
+      };
+    }
+
+    await user.save();
+
+    await logAction(
+      user._id,
+      user.role,
+      'UPDATE',
+      'User',
+      user._id,
+      req.ip,
+      req.headers['user-agent'],
+      { action: 'UPDATE_PROFILE' }
+    );
+
+    const safe = await User.findById(user._id);
+    res.status(200).json({
+      success: true,
+      message: 'Profile updated successfully',
+      data: safe,
+    });
+  } catch (error) {
+    next(error);
+  }
+};
+
 // @desc    Update user password
 // @route   PATCH /api/v1/auth/update-password
 // @access  Private

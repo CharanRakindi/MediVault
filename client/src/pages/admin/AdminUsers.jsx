@@ -2,7 +2,7 @@ import { useState } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import api from '../../api/axios';
 import { SkeletonTable } from '../../components/SkeletonLoader';
-import { Search, UserCheck, UserX, Shield, Stethoscope, User as UserIcon, ArrowUp, ArrowDown, ChevronsUpDown, Plus, X } from 'lucide-react';
+import { Search, UserCheck, UserX, Shield, Stethoscope, User as UserIcon, ArrowUp, ArrowDown, ChevronsUpDown, Plus, X, Pencil } from 'lucide-react';
 import { toast } from 'sonner';
 
 const ROLE_META = {
@@ -62,6 +62,9 @@ const AdminUsers = () => {
     password: '',
   });
 
+  const [editUser, setEditUser] = useState(null);
+  const [editForm, setEditForm] = useState({ name: '', email: '', phone: '' });
+
   const { data: departments } = useQuery({
     queryKey: ['adminDepartments'],
     queryFn: async () => {
@@ -116,6 +119,30 @@ const AdminUsers = () => {
       toast.error(error.response?.data?.message || 'Failed to update status');
     },
   });
+
+  const updateUser = useMutation({
+    mutationFn: async ({ id, payload }) => {
+      const res = await api.patch(`/users/${id}`, payload);
+      return res.data;
+    },
+    onSuccess: (data) => {
+      queryClient.invalidateQueries({ queryKey: ['adminUsers'] });
+      setEditUser(null);
+      toast.success(data.message || 'User updated');
+    },
+    onError: (error) => {
+      toast.error(error.response?.data?.message || 'Failed to update user');
+    },
+  });
+
+  const openEdit = (user) => {
+    setEditUser(user);
+    setEditForm({
+      name: user.name || '',
+      email: user.email || '',
+      phone: user.phone || '',
+    });
+  };
 
   const handleSort = (key) => {
     let direction = 'asc';
@@ -251,20 +278,32 @@ const AdminUsers = () => {
                       {new Date(user.createdAt).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}
                     </td>
                     <td className="whitespace-nowrap px-6 py-3.5 text-right">
-                      <button
-                        onClick={() => toggleStatus.mutate({ id: user._id, isActive: !user.isActive })}
-                        disabled={toggleStatus.isPending}
-                        className={`inline-flex items-center gap-1.5 rounded-lg border px-3 py-1.5 text-[12px] font-semibold transition-colors disabled:opacity-50 ${user.isActive
-                          ? 'border-red-200 bg-white text-red-600 hover:bg-red-50'
-                          : 'border-emerald-200 bg-white text-emerald-700 hover:bg-emerald-50'
-                          }`}
-                      >
-                        {user.isActive ? (
-                          <><UserX className="h-3.5 w-3.5" /> Suspend</>
-                        ) : (
-                          <><UserCheck className="h-3.5 w-3.5" /> Activate</>
-                        )}
-                      </button>
+                      <div className="flex items-center justify-end gap-1.5">
+                        <button
+                          type="button"
+                          onClick={() => openEdit(user)}
+                          className="inline-flex items-center gap-1.5 rounded-lg border border-slate-200 bg-white px-3 py-1.5 text-[12px] font-medium text-slate-700 transition-colors hover:bg-slate-50"
+                          title="Edit name, email, phone"
+                        >
+                          <Pencil className="h-3.5 w-3.5" />
+                          Edit
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => toggleStatus.mutate({ id: user._id, isActive: !user.isActive })}
+                          disabled={toggleStatus.isPending}
+                          className={`inline-flex items-center gap-1.5 rounded-lg border px-3 py-1.5 text-[12px] font-medium transition-colors disabled:opacity-50 ${user.isActive
+                            ? 'border-red-200 bg-white text-red-600 hover:bg-red-50'
+                            : 'border-emerald-200 bg-white text-emerald-700 hover:bg-emerald-50'
+                            }`}
+                        >
+                          {user.isActive ? (
+                            <><UserX className="h-3.5 w-3.5" /> Suspend</>
+                          ) : (
+                            <><UserCheck className="h-3.5 w-3.5" /> Activate</>
+                          )}
+                        </button>
+                      </div>
                     </td>
                   </tr>
                 ))
@@ -467,6 +506,83 @@ const AdminUsers = () => {
                   className="btn btn-primary"
                 >
                   {createStaff.isPending ? 'Creating…' : 'Create account'}
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
+
+      {editUser && (
+        <div className="modal-backdrop">
+          <div className="modal-panel max-w-md">
+            <div className="flex items-center justify-between border-b border-slate-100 px-6 py-4">
+              <h2 className="flex items-center gap-2 text-[15px] font-medium tracking-[-0.015em] text-slate-900">
+                <Pencil className="h-4 w-4 text-slate-400" />
+                Edit user
+              </h2>
+              <button
+                type="button"
+                onClick={() => setEditUser(null)}
+                className="rounded-lg p-1.5 text-slate-400 transition-colors hover:bg-slate-100 hover:text-slate-700"
+              >
+                <X className="h-4 w-4" />
+              </button>
+            </div>
+            <form
+              onSubmit={(e) => {
+                e.preventDefault();
+                if (!editForm.name.trim() || !editForm.email.trim()) {
+                  toast.error('Name and email are required');
+                  return;
+                }
+                updateUser.mutate({
+                  id: editUser._id,
+                  payload: {
+                    name: editForm.name.trim(),
+                    email: editForm.email.trim(),
+                    phone: editForm.phone.trim(),
+                  },
+                });
+              }}
+              className="space-y-4 p-6"
+            >
+              <div>
+                <label className="label">Full name</label>
+                <input
+                  className="input"
+                  value={editForm.name}
+                  onChange={(e) => setEditForm({ ...editForm, name: e.target.value })}
+                  required
+                />
+              </div>
+              <div>
+                <label className="label">Email (admin only)</label>
+                <input
+                  type="email"
+                  className="input"
+                  value={editForm.email}
+                  onChange={(e) => setEditForm({ ...editForm, email: e.target.value })}
+                  required
+                />
+                <p className="mt-1.5 text-[12px] text-slate-400">
+                  Only admins can change user emails. Staff cannot change their own.
+                </p>
+              </div>
+              <div>
+                <label className="label">Phone</label>
+                <input
+                  className="input"
+                  value={editForm.phone}
+                  onChange={(e) => setEditForm({ ...editForm, phone: e.target.value })}
+                />
+              </div>
+              <div className="flex justify-end gap-2 border-t border-slate-100 pt-4">
+                <button type="button" onClick={() => setEditUser(null)} className="btn btn-secondary">
+                  Cancel
+                </button>
+                <button type="submit" disabled={updateUser.isPending} className="btn btn-primary">
+                  {updateUser.isPending ? 'Saving…' : 'Save changes'}
                 </button>
               </div>
             </form>

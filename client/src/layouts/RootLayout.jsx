@@ -203,8 +203,8 @@ const RootLayout = () => {
               <Menu className="h-5 w-5" />
             </button>
 
-            <div className="min-w-0 max-w-[11rem] truncate lg:hidden">
-              <BrandMark size="xs" tone="dark" asLink />
+            <div className="min-w-0 max-w-[12.5rem] lg:hidden">
+              <BrandMark size="sm" tone="dark" asLink />
             </div>
 
             <div className="hidden items-center gap-2 text-[12px] font-normal text-slate-500 lg:flex">
