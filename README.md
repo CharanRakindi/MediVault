@@ -206,7 +206,6 @@ Clinova/
 ├── docker-compose.yml
 ├── .env.docker.example
 ├── docs/
-│   ├── DEPLOY.md              # Deploy overview (AWS)
 │   ├── DEPLOY-AWS.md          # Lightsail / EC2 + continuous deploy
 │   └── screenshots/
 ├── scripts/aws-bootstrap.sh
