@@ -89,10 +89,15 @@ app.use('/api', limiter);
 
 const refreshLimiter = rateLimit({
   windowMs: 15 * 60 * 1000,
-  max: 30,
+  max: Number(process.env.REFRESH_RATE_LIMIT_MAX) || 60,
   standardHeaders: true,
   legacyHeaders: false,
-  message: 'Too many token refresh attempts.',
+  // Unauthenticated pages poll refresh via axios interceptor — don't hard-lock demos
+  skipSuccessfulRequests: true,
+  message: {
+    success: false,
+    message: 'Too many token refresh attempts. Please wait a few minutes.',
+  },
 });
 
 // Liveness — process up

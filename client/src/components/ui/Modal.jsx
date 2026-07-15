@@ -4,6 +4,7 @@ import { cn } from '../../utils/cn';
 
 /**
  * Shared modal with focus restore and Escape to close.
+ * Focus setup runs only when `open` flips true — not on every parent re-render.
  */
 export default function Modal({
   open,
@@ -19,25 +20,45 @@ export default function Modal({
 }) {
   const titleId = useId();
   const closeRef = useRef(null);
+  const panelRef = useRef(null);
   const previouslyFocused = useRef(null);
+  const onCloseRef = useRef(onClose);
+  onCloseRef.current = onClose;
 
   useEffect(() => {
     if (!open) return undefined;
+
     previouslyFocused.current = document.activeElement;
-    const t = window.setTimeout(() => closeRef.current?.focus(), 10);
+
     const onKey = (e) => {
-      if (e.key === 'Escape') onClose?.();
+      if (e.key === 'Escape') onCloseRef.current?.();
     };
     document.addEventListener('keydown', onKey);
-    const prev = document.body.style.overflow;
+
+    const prevOverflow = document.body.style.overflow;
     document.body.style.overflow = 'hidden';
+
+    // Initial focus once on open. Prefer first field so forms stay usable;
+    // never re-run this when parent re-renders (that stole keystrokes).
+    const t = window.setTimeout(() => {
+      const panel = panelRef.current;
+      const firstField = panel?.querySelector(
+        'input:not([disabled]), select:not([disabled]), textarea:not([disabled])'
+      );
+      if (firstField && typeof firstField.focus === 'function') {
+        firstField.focus();
+        return;
+      }
+      closeRef.current?.focus();
+    }, 10);
+
     return () => {
       window.clearTimeout(t);
       document.removeEventListener('keydown', onKey);
-      document.body.style.overflow = prev;
+      document.body.style.overflow = prevOverflow;
       previouslyFocused.current?.focus?.();
     };
-  }, [open, onClose]);
+  }, [open]);
 
   if (!open) return null;
 
@@ -50,10 +71,11 @@ export default function Modal({
       )}
       role="presentation"
       onMouseDown={(e) => {
-        if (e.target === e.currentTarget) onClose?.();
+        if (e.target === e.currentTarget) onCloseRef.current?.();
       }}
     >
       <div
+        ref={panelRef}
         role="dialog"
         aria-modal="true"
         aria-labelledby={title ? titleId : undefined}
@@ -77,7 +99,7 @@ export default function Modal({
               <button
                 ref={closeRef}
                 type="button"
-                onClick={onClose}
+                onClick={() => onCloseRef.current?.()}
                 className="tap-target inline-flex items-center justify-center rounded-lg p-2 text-ink-faint transition-colors hover:bg-surface-subtle hover:text-ink"
                 aria-label="Close dialog"
               >

@@ -22,10 +22,21 @@ import rateLimit from 'express-rate-limit';
 
 const router = express.Router();
 
+// Only failed attempts count — wrong password while demo-seeding should not lock you out forever.
+// Override with AUTH_RATE_LIMIT_MAX on the server if needed.
 const authLimiter = rateLimit({
   windowMs: 15 * 60 * 1000, // 15 minutes
-  max: process.env.NODE_ENV === 'test' ? 1000 : 10,
-  message: 'Too many login attempts, please try again later.',
+  max:
+    process.env.NODE_ENV === 'test'
+      ? 1000
+      : Number(process.env.AUTH_RATE_LIMIT_MAX) || 30,
+  skipSuccessfulRequests: true,
+  standardHeaders: true,
+  legacyHeaders: false,
+  message: {
+    success: false,
+    message: 'Too many login attempts. Wait a few minutes, or restart the API container to clear the limit.',
+  },
 });
 
 router.post('/register', validateRequest(registerSchema), register);

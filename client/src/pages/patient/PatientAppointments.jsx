@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useCallback, useState } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import api from '../../api/axios';
 import { format } from 'date-fns';
@@ -24,6 +24,13 @@ const PatientAppointments = () => {
     timeSlot: '',
     reason: '',
   });
+
+  const closeModal = useCallback(() => setIsModalOpen(false), []);
+  const openModal = useCallback(() => setIsModalOpen(true), []);
+
+  const setField = useCallback((key, value) => {
+    setFormData((prev) => ({ ...prev, [key]: value }));
+  }, []);
 
   const { data: appointments, isLoading } = useQuery({
     queryKey: ['myAppointments'],
@@ -68,7 +75,7 @@ const PatientAppointments = () => {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['myAppointments'] });
-      setIsModalOpen(false);
+      closeModal();
       setFormData({ doctor: '', appointmentDate: '', timeSlot: '', reason: '' });
       toast.success('Appointment requested — waiting for doctor to accept');
     },
@@ -155,7 +162,7 @@ const PatientAppointments = () => {
 
           <button
             type="button"
-            onClick={() => setIsModalOpen(true)}
+            onClick={openModal}
             className="btn btn-primary flex-1 sm:flex-none"
           >
             <Plus className="h-4 w-4" />
@@ -193,7 +200,7 @@ const PatientAppointments = () => {
                         action={
                           <button
                             type="button"
-                            onClick={() => setIsModalOpen(true)}
+                            onClick={openModal}
                             className="btn btn-secondary"
                           >
                             Book appointment
@@ -264,7 +271,7 @@ const PatientAppointments = () => {
 
       <Modal
         open={isModalOpen}
-        onClose={() => setIsModalOpen(false)}
+        onClose={closeModal}
         title="Book appointment"
         panelClassName="max-w-md"
       >
@@ -304,7 +311,7 @@ const PatientAppointments = () => {
                 required
                 className="select"
                 value={formData.doctor}
-                onChange={(e) => setFormData({ ...formData, doctor: e.target.value })}
+                onChange={(e) => setField('doctor', e.target.value)}
               >
                 <option value="">Choose a specialist…</option>
                 {bookableDoctors.map((doc) => {
@@ -334,9 +341,7 @@ const PatientAppointments = () => {
                 className="input"
                 value={formData.appointmentDate}
                 min={new Date().toISOString().split('T')[0]}
-                onChange={(e) =>
-                  setFormData({ ...formData, appointmentDate: e.target.value })
-                }
+                onChange={(e) => setField('appointmentDate', e.target.value)}
               />
             </div>
             <div>
@@ -350,7 +355,7 @@ const PatientAppointments = () => {
                 required
                 className="select"
                 value={formData.timeSlot}
-                onChange={(e) => setFormData({ ...formData, timeSlot: e.target.value })}
+                onChange={(e) => setField('timeSlot', e.target.value)}
               >
                 <option value="">Time…</option>
                 {['09:00 AM', '10:00 AM', '11:00 AM', '02:00 PM', '03:00 PM', '04:00 PM'].map(
@@ -371,12 +376,14 @@ const PatientAppointments = () => {
             </label>
             <textarea
               id="book-reason"
+              name="reason"
               required
               className="input min-h-[88px] resize-none py-2.5"
               rows={3}
               value={formData.reason}
-              onChange={(e) => setFormData({ ...formData, reason: e.target.value })}
+              onChange={(e) => setField('reason', e.target.value)}
               placeholder="Briefly describe your symptoms…"
+              autoComplete="off"
             />
           </div>
 
@@ -387,7 +394,7 @@ const PatientAppointments = () => {
           <div className="flex justify-end gap-2 border-t border-line pt-4">
             <button
               type="button"
-              onClick={() => setIsModalOpen(false)}
+              onClick={closeModal}
               className="btn btn-secondary"
             >
               Cancel
