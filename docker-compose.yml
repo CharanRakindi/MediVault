@@ -80,6 +80,10 @@ services:
       context: ./client
       dockerfile: Dockerfile
     restart: unless-stopped
+    environment:
+      # Nginx proxies /api and /health here (Compose DNS name of the api service)
+      API_HOST: api:5001
+      PORT: "80"
     ports:
       - "${WEB_PORT:-80}:80"
     depends_on:
