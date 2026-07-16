@@ -13,7 +13,6 @@ import {
 import {
   ArrowRight,
   Menu,
-  Star,
   X,
   Shield,
   CalendarCheck2,
@@ -589,24 +588,6 @@ const Home = () => {
               mounted ? 'translate-y-0 opacity-100' : 'translate-y-5 opacity-0'
             }`}
           >
-            <motion.div
-              initial={{ opacity: 0, y: 12, scale: 0.96 }}
-              animate={{ opacity: 1, y: 0, scale: 1 }}
-              transition={{ delay: 0.12, duration: 0.6, ease: EASE }}
-              className="mb-5 inline-flex max-w-full items-center gap-2 rounded-full border border-white/12 bg-white/[0.08] px-2 py-1 backdrop-blur-md sm:mb-6"
-            >
-              <motion.span
-                className="relative shrink-0 rounded-full bg-white px-2 py-0.5 text-2xs font-medium uppercase tracking-[0.06em] text-slate-900 sm:text-2xs"
-                animate={{ boxShadow: ['0 0 0 0 rgba(255,255,255,0)', '0 0 0 6px rgba(255,255,255,0.12)', '0 0 0 0 rgba(255,255,255,0)'] }}
-                transition={{ duration: 2.4, repeat: Infinity, ease: 'easeInOut' }}
-              >
-                Trusted
-              </motion.span>
-              <span className="truncate pr-1.5 text-xs font-normal tracking-[-0.01em] text-white/90 sm:text-sm">
-                20,000+ Patients Worldwide
-              </span>
-            </motion.div>
-
             <WordReveal
               lines={HEADING_LINES}
               delay={260}
@@ -665,46 +646,7 @@ const Home = () => {
             </motion.div>
           </div>
 
-          <div className="mt-10 flex flex-col gap-6 sm:mt-14 sm:flex-row sm:items-end sm:justify-between sm:gap-8">
-            <motion.div
-              initial={{ opacity: 0, y: 10 }}
-              animate={{ opacity: mounted ? 1 : 0, y: 0 }}
-              transition={{ delay: 0.65, duration: 0.55, ease: EASE }}
-              className="flex items-center gap-3"
-            >
-              <div className="flex -space-x-2">
-                {AVATARS.map((src, i) => (
-                  <motion.img
-                    key={src}
-                    src={src}
-                    alt=""
-                    initial={{ opacity: 0, scale: 0.85 }}
-                    animate={{ opacity: 1, scale: 1 }}
-                    transition={{ delay: 0.7 + i * 0.05, ease: EASE }}
-                    className="h-9 w-9 rounded-full border-2 border-white/90 object-cover shadow-md"
-                    style={{ zIndex: AVATARS.length - i }}
-                  />
-                ))}
-              </div>
-              <div className="min-w-0">
-                <div className="flex items-center gap-0.5" aria-label="5-star rating">
-                  {Array.from({ length: 5 }).map((_, i) => (
-                    <motion.span
-                      key={i}
-                      initial={{ opacity: 0, scale: 0.4, y: 4 }}
-                      animate={{ opacity: 1, scale: 1, y: 0 }}
-                      transition={{ delay: 0.85 + i * 0.06, duration: 0.35, ease: EASE }}
-                    >
-                      <Star className="h-3 w-3 fill-amber-400 text-amber-400" strokeWidth={0} />
-                    </motion.span>
-                  ))}
-                </div>
-                <p className="mt-0.5 text-xs font-normal tracking-[-0.01em] text-white/80">
-                  Based on 20K+ reviews
-                </p>
-              </div>
-            </motion.div>
-
+          <div className="mt-10 flex justify-end sm:mt-14">
             <a
               href="#about"
               className="hidden items-center gap-2.5 text-2xs font-medium uppercase tracking-[0.16em] text-white/55 transition-colors hover:text-white/80 sm:inline-flex"
